@@ -1,5 +1,8 @@
 import Foundation
 import MeldeCore
+import MeldoKit
+import MeldoState
+import MeldoUI
 
 extension AppModel {
     /// The model for this launch. Debug builds started by the UI tests with
@@ -10,10 +13,23 @@ extension AppModel {
         #if DEBUG
         let args = ProcessInfo.processInfo.arguments
         if args.contains("-uitest") {
-            return UITestLaunch(arguments: args).makeModel()
+            return UITestLaunch(arguments: args).makeModel().installingModules()
         }
         #endif
-        return AppModel(store: try? LocalStore.standard())
+        return AppModel(store: try? LocalStore.standard()).installingModules()
+    }
+
+    /// Connects the modules to a new model. Keychain items outlive the app, so a fresh
+    /// install first forgets what an earlier one left behind.
+    func installingModules() -> AppModel {
+        if hasReadableStore {
+            Keychain.forgetEarlierInstall(hasConnection: data.untis != nil || data.teams != nil,
+                                          alwaysForget: AppModel.perInstallSecrets)
+        }
+        installUntis()
+        installTeams()
+        installDrive()
+        return self
     }
 }
 

@@ -1,4 +1,7 @@
 import AuthenticationServices
+import MeldoKit
+import MeldoState
+import MeldoUI
 import SwiftUI
 
 /// Connect Microsoft Teams: sign in on Microsoft's page, then assignments

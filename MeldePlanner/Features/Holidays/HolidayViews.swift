@@ -1,30 +1,7 @@
+import MeldoKit
+import MeldoState
+import MeldoUI
 import SwiftUI
-
-/// Banner for the timetable and calendar: "Herbstferien · 19.10.–01.11.".
-struct HolidayBanner: View {
-    let holiday: Holiday
-
-    var body: some View {
-        HStack(spacing: DS.spacingM) {
-            Image(systemName: "lock.fill")
-                .font(.title3)
-                .foregroundStyle(.white)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(holiday.name).font(.headline)
-                Text(HolidayText.range(holiday))
-                    .font(.subheadline)
-                    .monospacedDigit()
-                    .opacity(0.85)
-            }
-            Spacer(minLength: 0)
-        }
-        .foregroundStyle(.white)
-        .padding(DS.spacingM)
-        // Blue like WebUntis, so holidays look the same everywhere.
-        .background(Color.untisHoliday, in: .rect(cornerRadius: DS.rowRadius, style: .continuous))
-        .accessibilityElement(children: .combine)
-    }
-}
 
 /// Mehr → Ferien: the school's current and upcoming holidays. Past ones are left out,
 /// so the list doesn't grow with every school year WebUntis keeps.

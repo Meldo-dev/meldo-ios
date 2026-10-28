@@ -1,5 +1,26 @@
 import CryptoKit
 import Foundation
+import MeldoState
+import MeldoUI
+import Observation
+import MeldoKit
+
+/// Google Drive status on this device (per device, never synced).
+@Observable
+final class DriveSession {
+    var state = AppModel.DriveState.off
+    var isSyncing = false
+    /// The connected Google account (not secret) and the last backup.
+    var account = UserDefaults.standard.string(forKey: AppModel.driveAccountKey)
+    var lastSync = UserDefaults.standard.object(forKey: AppModel.driveLastSyncKey) as? Date
+    var problem: String?
+    var syncTask: Task<Void, Never>?
+    /// The Drive sync running now; "trennen" cancels it between steps.
+    @ObservationIgnored var runTask: Task<Void, any Error>?
+    /// Bumped by "Google Drive trennen": work started earlier stops writing.
+    @ObservationIgnored var generation = 0
+    @ObservationIgnored var access: GoogleClient.Tokens?
+}
 
 /// Google Drive sync and backup for this device. The Google sign-in and
 /// the unlocked backup key stay in this device's Keychain; the backup in Drive is
@@ -12,6 +33,26 @@ extension AppModel {
         case needsPassword
         case on
     }
+
+    var driveSession: DriveSession { moduleState(DriveSession.init) }
+    var driveState: DriveState { get { driveSession.state } set { driveSession.state = newValue } }
+    var isSyncingWithDrive: Bool { get { driveSession.isSyncing } set { driveSession.isSyncing = newValue } }
+    var driveAccount: String? { get { driveSession.account } set { driveSession.account = newValue } }
+    var lastDriveSync: Date? { get { driveSession.lastSync } set { driveSession.lastSync = newValue } }
+    var driveProblem: String? { get { driveSession.problem } set { driveSession.problem = newValue } }
+    var driveSyncTask: Task<Void, Never>? { get { driveSession.syncTask } set { driveSession.syncTask = newValue } }
+    var driveRunTask: Task<Void, any Error>? { get { driveSession.runTask } set { driveSession.runTask = newValue } }
+    var driveGeneration: Int { get { driveSession.generation } set { driveSession.generation = newValue } }
+    var driveAccess: GoogleClient.Tokens? { get { driveSession.access } set { driveSession.access = newValue } }
+
+    /// Reads this device's Drive status and backs up after every change.
+    func installDrive() {
+        if hasReadableStore { driveState = Self.storedDriveState() }
+        onChange { [weak self] in self?.scheduleDriveSync() }
+    }
+
+    /// The Drive sign-in and key are per install: after a reinstall, sign in again.
+    static let perInstallSecrets = [driveTokenAccount, driveKeyAccount]
 
     static let driveTokenAccount = "google-drive"
     static let driveKeyAccount = "google-drive-key"

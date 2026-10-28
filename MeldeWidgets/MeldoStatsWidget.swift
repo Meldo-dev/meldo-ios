@@ -1,5 +1,6 @@
 import Charts
 import MeldeCore
+import MeldoKit
 import SwiftUI
 import WidgetKit
 

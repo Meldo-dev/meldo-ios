@@ -1,5 +1,8 @@
 import Charts
 import MeldeCore
+import MeldoKit
+import MeldoState
+import MeldoUI
 import SwiftUI
 
 /// Participation statistics from real entries only; empty data shows an empty state, never a sample chart.

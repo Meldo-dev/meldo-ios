@@ -1,4 +1,7 @@
 import MeldeCore
+import MeldoKit
+import MeldoState
+import MeldoUI
 import SwiftUI
 
 /// Notenrechner: averages per subject and overall from the student's own

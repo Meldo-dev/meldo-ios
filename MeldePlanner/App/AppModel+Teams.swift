@@ -1,8 +1,38 @@
 import Foundation
+import MeldoKit
+import MeldoState
+import MeldoUI
+
+/// Teams import status on this device.
+final class TeamsSession {
+    /// Bumped by "Teams trennen". An import that started earlier stops writing,
+    /// so it can't bring back the connection or its secret.
+    var generation = 0
+}
 
 /// Microsoft Teams assignments become homework in Aufgaben.
 extension AppModel {
     private static let teamsKeychainAccount = "microsoft-teams"
+
+    var teamsGeneration: Int {
+        get { moduleState(TeamsSession.init).generation }
+        set { moduleState(TeamsSession.init).generation = newValue }
+    }
+
+    /// Teams is offered once switched on, or while a connection from before still exists.
+    var teamsAvailable: Bool { preferences.teamsEnabled || data.teams != nil }
+
+    func setTeamsEnabled(_ on: Bool) {
+        mutate { $0.preferences.teamsEnabled = on }
+    }
+
+    /// Disconnected on another device: this device's secret goes too.
+    func installTeams() {
+        onMerge { [weak self] before in
+            guard let self, before.teams != nil, data.teams == nil else { return }
+            forgetTeamsSecret()
+        }
+    }
 
     var teamsLink: TeamsLink? { data.teams }
 

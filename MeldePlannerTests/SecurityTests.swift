@@ -1,4 +1,6 @@
 import Foundation
+import MeldoKit
+import MeldoState
 import Testing
 @testable import MeldePlanner
 
@@ -12,6 +14,7 @@ struct SecurityTests {
         defer { try? FileManager.default.removeItem(at: url) }
         let store = LocalStore(url: url)
         let model = AppModel(store: store)
+        model.installUntis()
         model.mutate { $0.untis = UntisLink(server: "a.webuntis.com", loginName: "x", schoolName: "", user: "old") }
         let before = model.data
         var merged = model.data

@@ -1,4 +1,7 @@
 import MeldeCore
+import MeldoKit
+import MeldoState
+import MeldoUI
 import SwiftUI
 
 /// Home: cards the student arranges and resizes ("Anpassen"), from a day
@@ -244,54 +247,6 @@ private struct TodayCard: View {
     }
 }
 
-/// One lesson in a list, colored like the timetable.
-struct BlockRow: View {
-    @Environment(AppModel.self) private var model
-    let block: TimetableBlock
-    var isCurrent = false
-    var compact = false
-    var showInfo = false
-
-    var body: some View {
-        let subjectColor = model.subject(block.subjectID)?.color.color ?? .gray
-        let style = BlockStyle(kind: block.kind, subjectColor: subjectColor)
-        HStack(spacing: DS.spacingS) {
-            // Lists show the subject's own color so lessons scan at a glance; the
-            // grid keeps the WebUntis slate. Changes keep their change color.
-            RoundedRectangle(cornerRadius: 2).fill(block.kind == .regular ? subjectColor : style.stripe).frame(width: 4)
-            VStack(alignment: .leading, spacing: 1) {
-                Text(block.subjectName)
-                    .font(.subheadline.weight(.semibold))
-                    .strikethrough(block.kind == .cancelled)
-                    .lineLimit(1)
-                Text(details)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .monospacedDigit()
-                    .lineLimit(1)
-                if showInfo, let info = block.info {
-                    Text(info).font(.caption).foregroundStyle(.secondary).lineLimit(2)
-                }
-            }
-            Spacer(minLength: 0)
-            if isCurrent {
-                Badge(text: L("Jetzt"), color: .accentColor)
-            } else if let label = BlockStyle.label(for: block.kind), !compact {
-                Badge(text: label, color: style.accent)
-            }
-        }
-        .padding(.vertical, 2)
-        .accessibilityElement(children: .combine)
-    }
-
-    private var details: String {
-        var parts = [TimeText.range(block.startMinute, block.endMinute)]
-        if let room = block.room { parts.append(room) }
-        if !compact, !block.teacher.isEmpty { parts.append(block.teacher) }
-        return parts.joined(separator: " · ")
-    }
-}
-
 // MARK: - Week preview
 
 private struct DayBlocks: Identifiable {
@@ -527,36 +482,6 @@ private struct UpcomingExamsCard: View {
     }
 }
 
-struct UntisExamRow: View {
-    @Environment(AppModel.self) private var model
-    let exam: UntisExamRecord
-    let now: Date
-    var compact = false
-
-    var body: some View {
-        let days = model.calendar.dateComponents([.day], from: model.calendar.startOfDay(for: now), to: exam.date).day ?? 0
-        HStack(spacing: DS.spacingS) {
-            RoundedRectangle(cornerRadius: 2).fill(Color.yellow).frame(width: 4)
-            VStack(alignment: .leading, spacing: 1) {
-                Text(exam.name.isEmpty ? exam.subject : "\(exam.subject) · \(exam.name)")
-                    .font(.subheadline.weight(.semibold))
-                    .lineLimit(1)
-                Text(exam.date.formatted(.dateTime.weekday(.abbreviated).day().month(.abbreviated).locale(Localization.locale)))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                if !compact, !exam.rooms.isEmpty {
-                    Text(exam.rooms.joined(separator: ", "))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
-            Spacer(minLength: 0)
-            Badge(text: days == 0 ? L("heute") : (days == 1 ? L("morgen") : L("in \(days) Tagen")), color: .orange)
-        }
-        .accessibilityElement(children: .combine)
-    }
-}
-
 private struct SchoolNewsCard: View {
     @Environment(AppModel.self) private var model
     var size: CardSize
@@ -619,63 +544,5 @@ private struct AbsencesCard: View {
                     .font(.subheadline.weight(.semibold))
             }
         }
-    }
-}
-
-struct WeeklyGoalSheet: View {
-    @Environment(AppModel.self) private var model
-    @Environment(\.dismiss) private var dismiss
-    var now: Date
-    @State private var goal = 10
-
-    var body: some View {
-        NavigationStack {
-            Form {
-                Section {
-                    Stepper(value: $goal, in: 1...200) {
-                        Text(L("\(goal) Meldungen pro Woche"))
-                    }
-                } footer: {
-                    if let suggestion = model.suggestedWeeklyGoal(asOf: now) {
-                        Text(L("Vorschlag aus deinen letzten Wochen: \(suggestion)"))
-                    } else {
-                        Text(L("Nach einer Woche mit Meldungen schlagen wir dir ein realistisches Ziel vor."))
-                    }
-                }
-                if let suggestion = model.suggestedWeeklyGoal(asOf: now), suggestion != goal {
-                    Button(L("Vorschlag übernehmen")) { goal = suggestion }
-                }
-                if model.preferences.weeklyGoal != nil {
-                    Button(L("Ziel entfernen"), role: .destructive) {
-                        model.setWeeklyGoal(nil)
-                        dismiss()
-                    }
-                }
-            }
-            .navigationTitle(L("Wochenziel"))
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button(L("Abbrechen"), role: .cancel) { dismiss() }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button(L("Sichern")) {
-                        model.setWeeklyGoal(goal)
-                        dismiss()
-                    }
-                }
-            }
-            .onAppear {
-                goal = model.preferences.weeklyGoal ?? model.suggestedWeeklyGoal(asOf: now) ?? 10
-            }
-        }
-        .presentationDetents([.medium])
-    }
-}
-
-extension Calendar {
-    /// Monday-first weekday index, 0…6.
-    func mondayIndex(of date: Date) -> Int {
-        (component(.weekday, from: date) + 5) % 7
     }
 }

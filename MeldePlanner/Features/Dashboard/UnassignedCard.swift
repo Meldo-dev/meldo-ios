@@ -1,3 +1,6 @@
+import MeldoKit
+import MeldoState
+import MeldoUI
 import SwiftUI
 
 /// Meldungen logged from the Lock Screen or Control Center outside a lesson

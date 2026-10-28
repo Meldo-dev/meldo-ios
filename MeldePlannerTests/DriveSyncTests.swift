@@ -1,5 +1,7 @@
 import CryptoKit
 import Foundation
+import MeldoKit
+import MeldoState
 import Testing
 @testable import MeldePlanner
 
@@ -291,5 +293,22 @@ struct DriveSyncTests {
         #expect(!GoogleDriveFiles.isID("../files"))
         #expect(!GoogleDriveFiles.isID("a?alt=media"))
         #expect(!GoogleDriveFiles.isID(""))
+    }
+}
+
+@Suite("Sync encryption")
+struct SyncBoxTests {
+    @Test func sealedDataOpensOnlyWithTheSameKey() throws {
+        let key = SymmetricKey(size: .bits256)
+        let plain = Data("Mathe 2-".utf8)
+        let sealed = try SyncBox.seal(plain, key: key, context: Data("MeldoData/data".utf8))
+        #expect(sealed != plain)
+        #expect(try SyncBox.open(sealed, key: key, context: Data("MeldoData/data".utf8)) == plain)
+        // Another record's ciphertext doesn't open as this one.
+        #expect(throws: (any Error).self) { try SyncBox.open(sealed, key: key, context: Data("MeldoFile/x".utf8)) }
+        #expect(throws: (any Error).self) { try SyncBox.open(sealed, key: SymmetricKey(size: .bits256), context: Data("MeldoData/data".utf8)) }
+        var tampered = sealed
+        tampered[tampered.count - 1] ^= 0x01
+        #expect(throws: (any Error).self) { try SyncBox.open(tampered, key: key, context: Data("MeldoData/data".utf8)) }
     }
 }

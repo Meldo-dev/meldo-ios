@@ -1,5 +1,6 @@
 import AppIntents
 import Foundation
+import MeldoKit
 
 /// One tap from a widget, the Control Center, the Lock Screen or the Live
 /// Activity: records a Meldung for the current lesson. Outside lessons it is

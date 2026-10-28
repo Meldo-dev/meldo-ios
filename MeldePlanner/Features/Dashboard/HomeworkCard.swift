@@ -1,3 +1,6 @@
+import MeldoKit
+import MeldoState
+import MeldoUI
 import SwiftUI
 
 /// Homework due soon, check-off in place, and the homework streak.

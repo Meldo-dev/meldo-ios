@@ -25,6 +25,12 @@ settings:
 packages:
   MeldeCore:
     path: MeldeCore
+  MeldoKit:
+    path: Packages/MeldoKit
+  MeldoState:
+    path: Packages/MeldoState
+  MeldoUI:
+    path: Packages/MeldoUI
 
 targets:
   MeldePlanner:
@@ -36,12 +42,15 @@ targets:
       Release: Config/Meldo.xcconfig
     sources:
       - path: MeldePlanner
-      # Shared with the widget extension: models, store, engine, intents.
+      # The Melden intent runs in the app and in the widget extension.
       - path: Shared
       # The string catalog both apps share lives in meldo-core (git submodule).
       - path: core/l10n/Localizable.xcstrings
     dependencies:
       - package: MeldeCore
+      - package: MeldoKit
+      - package: MeldoState
+      - package: MeldoUI
       - target: MeldeWidgets
     entitlements:
       path: MeldePlanner/MeldePlanner.entitlements
@@ -100,6 +109,7 @@ targets:
       - path: core/l10n/Localizable.xcstrings
     dependencies:
       - package: MeldeCore
+      - package: MeldoKit
     entitlements:
       path: MeldeWidgets/MeldeWidgets.entitlements
       properties:
@@ -159,6 +169,8 @@ schemes:
     test:
       targets:
         - MeldePlannerTests
+        - package: MeldoKit/MeldoKitTests
+        - package: MeldoState/MeldoStateTests
         - MeldePlannerUITests
       gatherCoverageData: true
     run:
