@@ -43,6 +43,16 @@ extension AppModel {
         }
     }
 
+    /// Remembered for the next Entschuldigung.
+    func setExcuseDetails(name: String, className: String, salutation: String, adult: Bool) {
+        mutate { data in
+            data.preferences.studentName = name.trimmingCharacters(in: .whitespaces)
+            data.preferences.className = className.trimmingCharacters(in: .whitespaces)
+            data.preferences.excuseSalutation = salutation.trimmingCharacters(in: .whitespaces)
+            data.preferences.adultStudent = adult
+        }
+    }
+
     struct UntisImportSummary: Equatable {
         var newSubjects = 0
         var lessons = 0

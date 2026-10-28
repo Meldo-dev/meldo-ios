@@ -2,7 +2,7 @@ import Foundation
 import MeldoKit
 import MeldoState
 import Testing
-@testable import MeldePlanner
+@testable import MeldoGrades
 
 @Suite("Grades")
 struct GradesTests {

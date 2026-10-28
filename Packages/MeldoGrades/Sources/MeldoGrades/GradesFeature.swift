@@ -5,7 +5,7 @@ import SwiftUI
 
 extension MeldoFeature {
     /// Noten: the student's own grade calculator.
-    static var grades: MeldoFeature {
+    public static var grades: MeldoFeature {
         var feature = MeldoFeature(id: "grades", title: { L("Noten") }, symbol: "graduationcap", placement: .bar) {
             GradesView()
         }
