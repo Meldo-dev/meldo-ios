@@ -5,7 +5,7 @@ import SwiftUI
 
 extension MeldoFeature {
     /// Ferien from WebUntis, and the countdown card.
-    static var holidays: MeldoFeature {
+    public static var holidays: MeldoFeature {
         var feature = MeldoFeature(id: "holidays", title: { L("Ferien") }, symbol: "sun.horizon", placement: .school) {
             HolidayListView()
         }

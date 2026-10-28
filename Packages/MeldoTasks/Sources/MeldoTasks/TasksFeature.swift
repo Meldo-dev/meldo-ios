@@ -5,7 +5,7 @@ import SwiftUI
 
 extension MeldoFeature {
     /// Aufgaben: Hausaufgaben and to-dos, with their Start cards and the task editor.
-    static var tasks: MeldoFeature {
+    public static var tasks: MeldoFeature {
         var feature = MeldoFeature(id: "tasks", title: { L("Aufgaben") }, symbol: "checklist", placement: .bar) {
             TaskListView()
         }

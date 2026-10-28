@@ -65,16 +65,6 @@ extension AppModel {
         mutate { $0.grades.removeAll { $0.id == id } }
     }
 
-    /// Remembered for the next Entschuldigung.
-    func setExcuseDetails(name: String, className: String, salutation: String, adult: Bool) {
-        mutate { data in
-            data.preferences.studentName = name.trimmingCharacters(in: .whitespaces)
-            data.preferences.className = className.trimmingCharacters(in: .whitespaces)
-            data.preferences.excuseSalutation = salutation.trimmingCharacters(in: .whitespaces)
-            data.preferences.adultStudent = adult
-        }
-    }
-
     /// Grades are stored without their scale, so switching converts every grade
     /// (KMK table in Rust); otherwise 11 points would be read as an invalid 1–6 grade.
     func setGradeScale(_ scale: GradeScaleChoice) {

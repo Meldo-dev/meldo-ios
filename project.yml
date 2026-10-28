@@ -31,6 +31,18 @@ packages:
     path: Packages/MeldoState
   MeldoUI:
     path: Packages/MeldoUI
+  MeldoGrades:
+    path: Packages/MeldoGrades
+  MeldoHolidays:
+    path: Packages/MeldoHolidays
+  MeldoStatistics:
+    path: Packages/MeldoStatistics
+  MeldoSubjects:
+    path: Packages/MeldoSubjects
+  MeldoTasks:
+    path: Packages/MeldoTasks
+  MeldoParticipation:
+    path: Packages/MeldoParticipation
 
 targets:
   MeldePlanner:
@@ -51,6 +63,12 @@ targets:
       - package: MeldoKit
       - package: MeldoState
       - package: MeldoUI
+      - package: MeldoGrades
+      - package: MeldoHolidays
+      - package: MeldoStatistics
+      - package: MeldoSubjects
+      - package: MeldoTasks
+      - package: MeldoParticipation
       - target: MeldeWidgets
     entitlements:
       path: MeldePlanner/MeldePlanner.entitlements
@@ -171,6 +189,7 @@ schemes:
         - MeldePlannerTests
         - package: MeldoKit/MeldoKitTests
         - package: MeldoState/MeldoStateTests
+        - package: MeldoGrades/MeldoGradesTests
         - MeldePlannerUITests
       gatherCoverageData: true
     run:

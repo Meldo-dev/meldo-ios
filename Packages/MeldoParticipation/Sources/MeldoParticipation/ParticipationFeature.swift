@@ -5,7 +5,7 @@ import SwiftUI
 
 extension MeldoFeature {
     /// Melden: the button Start and Stundenplan float.
-    static var participation: MeldoFeature {
+    public static var participation: MeldoFeature {
         var feature = MeldoFeature(id: "participation", title: { L("Melden") }, symbol: "hand.raised", placement: .hidden) {
             EmptyView()
         }
