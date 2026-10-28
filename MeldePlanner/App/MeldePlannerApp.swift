@@ -17,18 +17,15 @@ enum BackgroundRefresh {
         schedule()
         let target = Self.model ?? AppModel.makeForLaunch()
         target.reloadFromDisk()
-        // Sync first, so a disconnect made on another device is seen before refreshing.
-        await target.syncWithGoogleDrive()
-        await target.refreshUntisIfStale(maxAge: AppModel.untisBackgroundRefreshInterval)
-        await target.refreshTeamsIfStale()
+        await MeldoFeatures.app.refresh(target, reason: .background)
     }
 
     /// Asks iOS to wake Meldo again; iOS decides the exact time.
     static func schedule() {
         let request = BGAppRefreshTaskRequest(identifier: identifier)
         // 5 minutes with Google Drive sync on, else 20 (WebUntis); iOS often runs it later.
-        let syncing = AppModel.storedDriveState() == .on
-        request.earliestBeginDate = Date(timeIntervalSinceNow: syncing ? 5 * 60 : 20 * 60)
+        let frequent = MeldoFeatures.app.all.contains { $0.wantsFrequentWakeUps() }
+        request.earliestBeginDate = Date(timeIntervalSinceNow: frequent ? 5 * 60 : 20 * 60)
         try? BGTaskScheduler.shared.submit(request)
     }
 }
@@ -43,6 +40,7 @@ struct MeldePlannerApp: App {
         WindowGroup {
             RootView()
                 .environment(model)
+                .environment(\.features, MeldoFeatures.app)
                 .tint(model.preferences.theme.tint)
                 .preferredColorScheme(model.preferences.appearance.colorScheme)
                 .environment(\.locale, Localization.locale)
@@ -51,11 +49,12 @@ struct MeldePlannerApp: App {
                 // Outside the `.id` above, so switching the language on the first
                 // page re-renders the tour instead of closing it. Swiping it away counts as skipping.
                 .sheet(isPresented: Binding(
-                    get: { model.showingOnboarding },
+                    get: { model.showingOnboarding && MeldoFeatures.app.feature("onboarding") != nil },
                     set: { if !$0 { model.finishOnboarding() } }
                 )) {
-                    OnboardingView()
+                    MeldoFeatures.app.feature("onboarding")?.page()
                         .environment(model)
+                        .environment(\.features, MeldoFeatures.app)
                         .tint(model.preferences.theme.tint)
                         .environment(\.locale, Localization.locale)
                         .id(model.preferences.language)
@@ -69,8 +68,7 @@ struct MeldePlannerApp: App {
                     while !Task.isCancelled {
                         try? await Task.sleep(for: .seconds(30))
                         guard scenePhase == .active else { continue }
-                        await model.syncWithGoogleDrive()
-                        await model.refreshUntisIfStale()
+                        await MeldoFeatures.app.refresh(model, reason: .periodic)
                     }
                 }
         }
@@ -83,11 +81,7 @@ struct MeldePlannerApp: App {
             guard phase == .active else { return }
             model.reloadFromDisk()
             model.refreshSchedules()
-            Task {
-                await model.syncWithGoogleDrive()
-                await model.refreshUntisIfStale()
-                await model.refreshTeamsIfStale()
-            }
+            Task { await MeldoFeatures.app.refresh(model, reason: .foreground) }
         }
     }
 }

@@ -9,6 +9,7 @@ import SwiftUI
 /// those come at the moment a feature needs them. Reopened from Mehr.
 struct OnboardingView: View {
     @Environment(AppModel.self) private var model
+    @Environment(\.features) private var features
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var page = 0
     @State private var addingSubject = false
@@ -28,7 +29,7 @@ struct OnboardingView: View {
                     feature.tag(index + 2)
                 }
                 SetupPage(
-                    connectUntis: { connectingUntis = true },
+                    connectUntis: features.has(.page("untis")) ? { connectingUntis = true } : nil,
                     addSubject: { addingSubject = true },
                     later: model.finishOnboarding
                 )
@@ -55,13 +56,13 @@ struct OnboardingView: View {
                         .accessibilityIdentifier("onboarding-skip")
                 }
             }
-            .navigationDestination(isPresented: $connectingUntis) { UntisConnectView() }
+            .navigationDestination(isPresented: $connectingUntis) { features.destination(.page("untis")) }
         }
         .sheet(isPresented: $addingSubject, onDismiss: {
             // A saved subject is enough to start: Melden is now one tap away on Start.
             if !model.subjects.isEmpty { model.finishOnboarding() }
         }) {
-            SubjectEditorView(subject: nil)
+            features.destination(.newSubject)
         }
         .presentationSizing(.form)
         // Connected WebUntis from the tour: the tour has done its job, close it.
@@ -154,6 +155,7 @@ private struct MeldenPage: View {
 
 /// One area of the app: what it is for, then how to use it, in plain words.
 private struct FeaturePage: View {
+    @Environment(\.features) private var features
     let symbol: String
     let title: String
     let intro: String
@@ -170,7 +172,7 @@ private struct FeaturePage: View {
             OnboardingTitle(title)
             Text(intro)
                 .foregroundStyle(.secondary)
-            ForEach(rows, id: \.title) { row in
+            ForEach(rows.filter { Self.feature(of: $0.symbol).map { features.feature($0) != nil } ?? true }, id: \.title) { row in
                 OnboardingRow(symbol: row.symbol, title: row.title, detail: row.detail)
             }
             if showsLegend {
@@ -178,6 +180,11 @@ private struct FeaturePage: View {
                     .padding(.leading, 36 + DS.spacingM)
             }
         }
+    }
+
+    /// Rows about a feature that may be left out of the build, by their symbol.
+    private static func feature(of symbol: String) -> String? {
+        ["person.3": "teams", "chart.bar": "statistics", "externaldrive": "drive", "calendar": "calendar"][symbol]
     }
 
     /// Computed, so a language change shows at once.
@@ -280,7 +287,7 @@ private struct FeaturePage: View {
 }
 
 private struct SetupPage: View {
-    var connectUntis: () -> Void
+    var connectUntis: (() -> Void)?
     var addSubject: () -> Void
     var later: () -> Void
 
@@ -290,17 +297,19 @@ private struct SetupPage: View {
             Text(L("Mit deinem Stundenplan ordnet Meldo jede Meldung der richtigen Stunde zu."))
                 .foregroundStyle(.secondary)
             VStack(spacing: DS.spacingM) {
-                Button(action: connectUntis) {
-                    Label(L("Mit WebUntis verbinden"), systemImage: "arrow.triangle.2.circlepath")
-                        .frame(maxWidth: .infinity)
+                if let connectUntis {
+                    Button(action: connectUntis) {
+                        Label(L("Mit WebUntis verbinden"), systemImage: "arrow.triangle.2.circlepath")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.glassProminent)
+                    .controlSize(.large)
+                    .accessibilityIdentifier("onboarding-untis")
+                    Text(L("Deine Anmeldung geht direkt an WebUntis, nie an Meldo, und bleibt im Schlüsselbund dieses Geräts."))
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .buttonStyle(.glassProminent)
-                .controlSize(.large)
-                .accessibilityIdentifier("onboarding-untis")
-                Text(L("Deine Anmeldung geht direkt an WebUntis, nie an Meldo, und bleibt im Schlüsselbund dieses Geräts."))
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
                 Button(action: addSubject) {
                     Label(L("Fach selbst anlegen"), systemImage: "plus")
                         .frame(maxWidth: .infinity)

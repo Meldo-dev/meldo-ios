@@ -363,9 +363,9 @@ public nonisolated struct Preferences: Codable, Hashable, Sendable {
     /// Microsoft Teams stays hidden until the student turns it on: many schools must
     /// allow the app first (Microsoft admin consent).
     public var teamsEnabled = false
-    /// The two places in the tab bar after Start and Stundenplan (AppTab raw values).
+    /// The two places in the tab bar after Start and Stundenplan (feature ids).
     public var barTabs: [String] = ["tasks", "grades"]
-    /// The tab Meldo opens on (AppTab raw value).
+    /// The tab Meldo opens on (feature id).
     public var startTab = "home"
 
     public init() {}

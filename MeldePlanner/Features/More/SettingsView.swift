@@ -4,69 +4,9 @@ import MeldoState
 import MeldoUI
 import SwiftUI
 
-/// The Mehr tab (iPhone, and iPad with the sidebar collapsed). The iPad sidebar lists
-/// the same destinations directly.
-struct MoreView: View {
-    @Environment(AppModel.self) private var model
-    @Environment(\.horizontalSizeClass) private var sizeClass
-    var body: some View {
-        List {
-            // Everything that isn't in the tab bar (the student picks the bar's two places).
-            Section(L("Schule")) {
-                // iPad's bar also keeps Dokumente.
-                let slots = AppTab.barSlots(model.preferences) + (sizeClass == .regular ? [.exams] : [])
-                ForEach(AppTab.barChoices.filter { !slots.contains($0) } + [.holidays], id: \.self) { place in
-                    NavigationLink { place.page } label: {
-                        Label(place.title, systemImage: place.symbol)
-                    }
-                }
-            }
-            Section(L("Verbindungen")) {
-                NavigationLink { UntisConnectView() } label: {
-                    Label(L("WebUntis"), systemImage: "arrow.triangle.2.circlepath")
-                }
-                if model.teamsAvailable {
-                    NavigationLink { TeamsConnectView() } label: {
-                        Label(L("Microsoft Teams"), systemImage: "person.3")
-                    }
-                }
-                NavigationLink { GoogleDriveView() } label: {
-                    LabeledContent {
-                        switch model.driveState {
-                        case .on: Text(L("An"))
-                        case .needsPassword: Text(L("Passwort fehlt")).foregroundStyle(.orange)
-                        case .off: Text(L("Aus"))
-                        }
-                    } label: {
-                        Label(L("Google Drive"), systemImage: "externaldrive")
-                    }
-                }
-            }
-            Section(L("App")) {
-                NavigationLink { SubjectListView() } label: {
-                    Label(L("Fächer"), systemImage: "books.vertical")
-                }
-                NavigationLink { SettingsView() } label: {
-                    Label(L("Einstellungen"), systemImage: "gearshape")
-                }
-                NavigationLink { StatusView() } label: {
-                    Label(L("Status: Widgets, Mitteilungen"), systemImage: "stethoscope")
-                }
-                NavigationLink { AboutView() } label: {
-                    Label(L("Über Meldo"), systemImage: "info.circle")
-                }
-                Button { model.showOnboardingAgain() } label: {
-                    Label(L("Einführung ansehen"), systemImage: "sparkles")
-                }
-                .accessibilityIdentifier("show-onboarding")
-            }
-        }
-        .navigationTitle(L("Mehr"))
-    }
-}
-
 struct SettingsView: View {
     @Environment(AppModel.self) private var model
+    @Environment(\.features) private var features
     @State private var editingGoal = false
     @State private var notificationsDenied = false
 
@@ -150,12 +90,9 @@ struct SettingsView: View {
                     Text(L("Fragt kurz nach dem Klingeln „Hast du dich gemeldet?“. Antworte direkt in der Mitteilung. Stunden mit Meldung werden übersprungen."))
                 }
             }
-            Section {
-                Toggle(L("Microsoft Teams"), isOn: Binding(get: { model.preferences.teamsEnabled }, set: { model.setTeamsEnabled($0) }))
-            } header: {
-                Text(L("Erweitert"))
-            } footer: {
-                Text(L("Schalte das nur ein, wenn deine Schule Meldo für Teams freigegeben hat. Viele Schulen müssen das erst erlauben."))
+            // Sections the features add (Microsoft Teams under Erweitert).
+            ForEach(features.all.indices, id: \.self) { i in
+                features.all[i].settingsSection?()
             }
             if !model.isSharedWithWidgets {
                 Section(L("Widgets")) {
@@ -198,26 +135,38 @@ struct AboutView: View {
 /// "Anpassen" on the Start screen, easier with VoiceOver.
 struct DashboardCardsView: View {
     @Environment(AppModel.self) private var model
+    @Environment(\.features) private var features
 
-    private var layout: [CardSlot<DashboardCard>] { model.preferences.homeLayout }
+    /// The cards this build has, in the student's order (cards of features left out stay saved).
+    private var layout: [CardSlot<DashboardCard>] {
+        model.preferences.homeLayout.filter { features.dashboardCard($0.kind) != nil }
+    }
 
     private var hidden: [DashboardCard] {
-        DashboardCard.allCases.filter { kind in !layout.contains { $0.kind == kind } }
+        features.dashboardCards.map(\.kind).filter { kind in !layout.contains { $0.kind == kind } }
     }
+
+    /// Saves the visible list and keeps the slots of cards this build doesn't have.
+    private func save(_ list: [CardSlot<DashboardCard>]) {
+        model.setHomeLayout(list + model.preferences.homeLayout.filter { features.dashboardCard($0.kind) == nil })
+    }
+
+    private func title(_ kind: DashboardCard) -> String { features.dashboardCard(kind)?.title() ?? "" }
+    private func symbol(_ kind: DashboardCard) -> String { features.dashboardCard(kind)?.symbol ?? "square" }
 
     var body: some View {
         List {
             Section {
                 ForEach(layout, id: \.kind) { slot in
                     HStack {
-                        Label(DashboardView.title(slot.kind), systemImage: DashboardView.symbol(slot.kind))
+                        Label(title(slot.kind), systemImage: symbol(slot.kind))
                         Spacer()
                         Picker(L("Größe"), selection: Binding(
                             get: { slot.size },
                             set: { size in
                                 var list = layout
                                 if let i = list.firstIndex(where: { $0.kind == slot.kind }) { list[i].size = size }
-                                model.setHomeLayout(list)
+                                save(list)
                             }
                         )) {
                             ForEach(CardSize.allCases) { Text($0.title).tag($0) }
@@ -228,12 +177,12 @@ struct DashboardCardsView: View {
                 .onMove { from, to in
                     var list = layout
                     list.move(fromOffsets: from, toOffset: to)
-                    model.setHomeLayout(list)
+                    save(list)
                 }
                 .onDelete { offsets in
                     var list = layout
                     list.remove(atOffsets: offsets)
-                    model.setHomeLayout(list)
+                    save(list)
                 }
             } header: {
                 Text(L("Sichtbar"))
@@ -244,9 +193,9 @@ struct DashboardCardsView: View {
                 Section(L("Ausgeblendet")) {
                     ForEach(hidden) { kind in
                         Button {
-                            model.setHomeLayout(layout + [CardSlot(kind: kind, size: .medium)])
+                            save(layout + [CardSlot(kind: kind, size: .medium)])
                         } label: {
-                            Label(DashboardView.title(kind), systemImage: DashboardView.symbol(kind))
+                            Label(title(kind), systemImage: symbol(kind))
                         }
                     }
                 }
@@ -312,27 +261,31 @@ struct AppIconPicker: View {
     }
 }
 
-/// Which two places sit in the tab bar after Start and Stundenplan, and which screen
+/// Which two places sit in the tab bar after the pinned tabs, and which screen
 /// Meldo opens on. The rest is under Mehr (iPad: in the sidebar).
 struct BarSettingsView: View {
     @Environment(AppModel.self) private var model
+    @Environment(\.features) private var features
 
-    private var slots: [AppTab] { AppTab.barSlots(model.preferences) }
+    private var slots: [MeldoFeature] { features.barSlots(model.preferences) }
+    private var opening: [MeldoFeature] { features.placed(.pinned) + slots }
 
     var body: some View {
         Form {
-            Section {
-                slotPicker(L("Dritter Platz"), index: 0)
-                slotPicker(L("Vierter Platz"), index: 1)
-            } header: {
-                Text(L("Leiste"))
-            } footer: {
-                Text(L("Start und Stundenplan bleiben immer in der Leiste. Alles andere findest du unter Mehr."))
+            if slots.count == 2 {
+                Section {
+                    slotPicker(L("Dritter Platz"), index: 0)
+                    slotPicker(L("Vierter Platz"), index: 1)
+                } header: {
+                    Text(L("Leiste"))
+                } footer: {
+                    Text(L("Start und Stundenplan bleiben immer in der Leiste. Alles andere findest du unter Mehr."))
+                }
             }
             Section {
-                Picker(L("Beim Öffnen"), selection: Binding(get: { startTab }, set: { model.setStartTab($0.rawValue) })) {
-                    ForEach([AppTab.home, .timetable] + slots, id: \.self) { place in
-                        Label(place.title, systemImage: place.symbol).tag(place)
+                Picker(L("Beim Öffnen"), selection: Binding(get: { startTab }, set: { model.setStartTab($0) })) {
+                    ForEach(opening) { place in
+                        Label(place.title(), systemImage: place.symbol).tag(place.id)
                     }
                 }
             } header: {
@@ -344,21 +297,21 @@ struct BarSettingsView: View {
         .navigationTitle(L("Leiste und Startseite"))
     }
 
-    /// The opening screen, or Start if the chosen one left the bar.
-    private var startTab: AppTab {
-        let chosen = AppTab(rawValue: model.preferences.startTab) ?? .home
-        return ([.home, .timetable] + slots).contains(chosen) ? chosen : .home
+    /// The opening screen, or the first pinned one if the chosen one left the bar.
+    private var startTab: String {
+        let chosen = model.preferences.startTab
+        return opening.contains { $0.id == chosen } ? chosen : (opening.first?.id ?? chosen)
     }
 
     private func slotPicker(_ title: String, index: Int) -> some View {
-        Picker(title, selection: Binding(get: { slots[index] }, set: { place in
-            var next = slots
+        Picker(title, selection: Binding(get: { slots[index].id }, set: { id in
+            var next = slots.map(\.id)
             // Choosing what the other place shows swaps the two.
-            if let other = next.firstIndex(of: place), other != index { next.swapAt(other, index) } else { next[index] = place }
-            model.setBarTabs(next.map(\.rawValue))
+            if let other = next.firstIndex(of: id), other != index { next.swapAt(other, index) } else { next[index] = id }
+            model.setBarTabs(next)
         })) {
-            ForEach(AppTab.barChoices, id: \.self) { place in
-                Label(place.title, systemImage: place.symbol).tag(place)
+            ForEach(features.barChoices) { place in
+                Label(place.title(), systemImage: place.symbol).tag(place.id)
             }
         }
     }

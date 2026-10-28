@@ -15,6 +15,8 @@ public enum FeaturePlacement: Sendable {
     case connections
     /// Listed under App.
     case app
+    /// No place in the navigation (Melden's button, the first-run tour).
+    case hidden
 }
 
 /// A screen one feature opens in another. A route whose feature isn't built in
@@ -30,6 +32,16 @@ public enum MeldoRoute: Hashable, Sendable {
     case newLesson(weekday: Int)
     /// An Entschuldigung for a WebUntis absence.
     case excuseNote(UntisAbsenceRecord)
+}
+
+/// Why the app asks features to bring their data up to date.
+public enum RefreshReason: Sendable {
+    /// iOS woke the app in the background (Background App Refresh).
+    case background
+    /// The app came to the foreground.
+    case foreground
+    /// Every half minute while the app is open.
+    case periodic
 }
 
 /// A card a feature adds to the Start screen.
@@ -58,6 +70,8 @@ public struct MeldoFeature: Identifiable {
     public var title: () -> String
     public var symbol: String
     public var placement: FeaturePlacement
+    /// Its row under Mehr, when that says more than the tab title.
+    public var moreTitle: (() -> String)?
     /// The feature's screen.
     public var page: () -> AnyView
     /// The screen extends under the floating Melden button instead of leaving room for it.
@@ -69,7 +83,7 @@ public struct MeldoFeature: Identifiable {
     /// A count on its tab, its sidebar row and on Mehr (something needs the student).
     public var badge: (AppModel) -> Int = { _ in 0 }
     /// A short status next to its row under Mehr ("An", "Aus").
-    public var status: ((AppModel) -> AnyView)?
+    public var statusLabel: ((AppModel) -> AnyView)?
     /// Cards it adds to Start.
     public var dashboardCards: [DashboardCardProvider] = []
     /// A section it adds to Einstellungen.
@@ -78,6 +92,13 @@ public struct MeldoFeature: Identifiable {
     public var destination: (MeldoRoute) -> AnyView? = { _ in nil }
     /// The button Start and Stundenplan float (Melden). `inAccessory` is the tab bar's accessory.
     public var floatingAction: ((_ inAccessory: Bool) -> AnyView)?
+    /// Brings the feature's outside data up to date (WebUntis, Teams, Google Drive).
+    public var refresh: ((AppModel, RefreshReason) async -> Void)?
+    /// Refreshes run in this order, lowest first (Drive syncs first, so a disconnect made
+    /// on another device is seen before anything else refreshes).
+    public var refreshOrder = 1
+    /// Asks iOS to wake the app more often in the background (Drive sync is on).
+    public var wantsFrequentWakeUps: () -> Bool = { false }
     /// Connects the feature to the model at launch (its state, change and merge hooks).
     public var install: (AppModel) -> Void = { _ in }
     /// Keychain accounts a fresh install forgets even when restored data still has a connection.
@@ -123,12 +144,40 @@ public struct MeldoFeatures {
         return destination(route) != nil
     }
 
+    /// The places the student can put into the tab bar's two flexible slots.
+    public var barChoices: [MeldoFeature] { placed(.bar) }
+
+    /// The two places chosen in Einstellungen; the first two choices until then.
+    public func barSlots(_ preferences: Preferences) -> [MeldoFeature] {
+        let choices = barChoices
+        let chosen = preferences.barTabs.compactMap { id in choices.first { $0.id == id } }
+        return chosen.count == 2 && chosen[0].id != chosen[1].id ? chosen : Array(choices.prefix(2))
+    }
+
+    /// A wide screen's top bar after the pinned tabs: the two places, then the ones it always keeps.
+    public func wideBar(_ preferences: Preferences) -> [MeldoFeature] {
+        let slots = barSlots(preferences)
+        return slots + barChoices.filter { choice in choice.alwaysInWideBar && !slots.contains { $0.id == choice.id } }
+    }
+
+    /// Schule: every place that isn't in `bar`, then the ones that are only listed.
+    public func schoolPlaces(notIn bar: [MeldoFeature]) -> [MeldoFeature] {
+        barChoices.filter { choice in !bar.contains { $0.id == choice.id } } + placed(.school)
+    }
+
     public var dashboardCards: [DashboardCardProvider] {
         all.flatMap(\.dashboardCards)
     }
 
     public func dashboardCard(_ kind: DashboardCard) -> DashboardCardProvider? {
         dashboardCards.first { $0.kind == kind }
+    }
+
+    /// Lets every feature bring its outside data up to date, in `refreshOrder`.
+    public func refresh(_ model: AppModel, reason: RefreshReason) async {
+        for feature in all.sorted(by: { $0.refreshOrder < $1.refreshOrder }) {
+            await feature.refresh?(model, reason)
+        }
     }
 
     /// Connects every feature to a new model. Keychain items outlive the app, so a fresh

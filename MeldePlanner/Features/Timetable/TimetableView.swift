@@ -14,8 +14,9 @@ struct TimetableView: View {
     @Environment(AppModel.self) private var model
     @Environment(\.horizontalSizeClass) private var sizeClass
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.features) private var features
     /// Bumped by tapping the Stundenplan tab again.
-    var todayRequest = 0
+    @Environment(\.tabReselections) private var todayRequest
     @AppStorage("timetable.mode") private var mode = TimetableMode.week
     /// Weeks from this one (week view). Optional because the scroll view reports it.
     @State private var weekPage: Int? = 0
@@ -82,10 +83,10 @@ struct TimetableView: View {
             LessonEditorView(lesson: nil, weekday: model.calendar.mondayIndex(of: shownDays.first ?? model.currentDate))
         }
         .sheet(item: $homeworkFor) { prefill in
-            TaskEditorView(task: nil, kind: .homework, subjectID: prefill.subjectID)
+            features.destination(.newTask(kind: .homework, subjectID: prefill.subjectID))
         }
         .sheet(isPresented: $managingSubjects) {
-            NavigationStack { SubjectListView() }
+            NavigationStack { features.destination(.page("subjects")) }
         }
         .sheet(isPresented: $choosingDate) {
             GoToDateSheet(start: shownDays.first ?? model.currentDate) { go(to: $0) }
@@ -109,7 +110,9 @@ struct TimetableView: View {
             Section {
                 Button(L("Stunde hinzufügen"), systemImage: "plus") { creating = true }
                     .disabled(model.subjects.isEmpty)
-                Button(L("Fächer"), systemImage: "books.vertical") { managingSubjects = true }
+                if features.has(.page("subjects")) {
+                    Button(L("Fächer"), systemImage: "books.vertical") { managingSubjects = true }
+                }
                 Button(L("Was bedeuten die Farben?"), systemImage: "paintpalette") { showingColors = true }
             }
         } label: {
@@ -136,8 +139,10 @@ struct TimetableView: View {
             }
         } actions: {
             if model.subjects.isEmpty {
-                Button(L("Fächer"), systemImage: "books.vertical") { managingSubjects = true }
-                    .buttonStyle(.glassProminent)
+                if features.has(.page("subjects")) {
+                    Button(L("Fächer"), systemImage: "books.vertical") { managingSubjects = true }
+                        .buttonStyle(.glassProminent)
+                }
             } else {
                 Button(L("Stunde hinzufügen"), systemImage: "plus") { creating = true }
                     .buttonStyle(.glassProminent)
@@ -750,6 +755,7 @@ private struct TimetableBlockView: View {
 /// student marks their own with "Das ist mein Kurs".
 private struct TimetableBlockSheet: View {
     @Environment(AppModel.self) private var model
+    @Environment(\.features) private var features
     @Environment(\.dismiss) private var dismiss
     let block: TimetableBlock
     var onHomework: (UUID?) -> Void
@@ -821,7 +827,9 @@ private struct TimetableBlockSheet: View {
                     }
                 }
                 Section {
-                    Button(L("Hausaufgabe eintragen"), systemImage: "book") { onHomework(shown.subjectID) }
+                    if features.has(.newTask(kind: .homework, subjectID: nil)) {
+                        Button(L("Hausaufgabe eintragen"), systemImage: "book") { onHomework(shown.subjectID) }
+                    }
                     if let id = shown.lessonID, let lesson = model.lessons.first(where: { $0.id == id }) {
                         Button(L("Bearbeiten"), systemImage: "pencil") { editingLesson = lesson }
                     }
