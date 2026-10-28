@@ -2,12 +2,17 @@ import MeldoKit
 import MeldoState
 import SwiftUI
 
-/// Meldo, the raised-hand mascot. Purely decorative: hidden from
-/// VoiceOver, hidden entirely when the student turns the mascot off, and the
-/// wave animation respects Reduce Motion.
+/// Meldo, the raised hand from the app logo, in orange, as a friendly presence on Start, in the
+/// check-in prompt and in empty states. Purely decorative: hidden from VoiceOver,
+/// hidden entirely when the student turns it off, and the wave respects Reduce Motion.
 public struct Mascot: View {
     public enum Mood: String, Sendable {
-        case wave, cheer, sleep
+        /// Waves once when it appears and when tapped.
+        case wave
+        /// The same wave, for a goal reached.
+        case cheer
+        /// Still and greyed out: no lessons, holidays.
+        case sleep
     }
 
     @Environment(AppModel.self) private var model
@@ -23,10 +28,13 @@ public struct Mascot: View {
 
     public var body: some View {
         if model.preferences.showMascot {
-            Image("Meldo-\(mood.rawValue)")
+            Image("MeldoHand")
                 .resizable()
+                .interpolation(.high)
                 .scaledToFit()
                 .frame(width: size, height: size)
+                .saturation(mood == .sleep ? 0 : 1)
+                .opacity(mood == .sleep ? 0.6 : 1)
                 .phaseAnimator([0.0, -9.0, 7.0, -4.0, 0.0], trigger: waves) { view, angle in
                     view.rotationEffect(.degrees(mood == .sleep ? 0 : angle), anchor: .bottom)
                 } animation: { _ in .spring(duration: 0.28, bounce: 0.4) }
