@@ -5,7 +5,7 @@ import SwiftUI
 
 extension MeldoFeature {
     /// WebUntis: the connection, its Start cards and the Entschuldigung.
-    static var untis: MeldoFeature {
+    public static var untis: MeldoFeature {
         var feature = MeldoFeature(id: "untis", title: { L("WebUntis") }, symbol: "arrow.triangle.2.circlepath", placement: .connections) {
             UntisConnectView()
         }
@@ -19,6 +19,9 @@ extension MeldoFeature {
             return AnyView(ExcuseNoteView(absence: absence))
         }
         feature.install = { $0.installUntis() }
+        #if DEBUG
+        feature.seedSample = { UntisSampleData.seed($0, now: $1) }
+        #endif
         feature.refresh = { model, reason in
             await model.refreshUntisIfStale(maxAge: reason == .background ? AppModel.untisBackgroundRefreshInterval : AppModel.untisRefreshInterval)
         }
@@ -26,7 +29,7 @@ extension MeldoFeature {
     }
 
     /// Abwesenheiten from WebUntis.
-    static var absences: MeldoFeature {
+    public static var absences: MeldoFeature {
         MeldoFeature(id: "absences", title: { L("Abwesenheiten") }, symbol: "person.crop.circle.badge.clock", placement: .bar) {
             AbsencesView()
         }

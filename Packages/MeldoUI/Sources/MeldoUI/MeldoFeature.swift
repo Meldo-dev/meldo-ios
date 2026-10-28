@@ -99,6 +99,8 @@ public struct MeldoFeature: Identifiable {
     public var refreshOrder = 1
     /// Asks iOS to wake the app more often in the background (Drive sync is on).
     public var wantsFrequentWakeUps: () -> Bool = { false }
+    /// Fills in sample data for the UI tests and screenshots (debug builds).
+    public var seedSample: ((AppModel, _ now: Date) -> Void)?
     /// Connects the feature to the model at launch (its state, change and merge hooks).
     public var install: (AppModel) -> Void = { _ in }
     /// Keychain accounts a fresh install forgets even when restored data still has a connection.

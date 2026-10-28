@@ -3,7 +3,7 @@ import MeldeCore
 import MeldoKit
 import MeldoState
 import Testing
-@testable import MeldePlanner
+@testable import MeldoUntis
 
 @Suite("WebUntis import merge")
 struct UntisImportTests {

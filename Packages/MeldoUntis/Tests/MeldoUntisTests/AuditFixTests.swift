@@ -3,26 +3,11 @@ import MeldeCore
 import MeldoKit
 import MeldoState
 import Testing
-@testable import MeldePlanner
+@testable import MeldoUntis
 
 /// Regression tests for findings from earlier security reviews.
 @Suite("Audit fixes")
 struct AuditFixTests {
-    @Test(arguments: [
-        ("Mathematik/Exams/1. Klausur (12.10.2026).pdf", true),
-        ("Scan.pdf", true),
-        ("../../Library/Cookies/Cookies.binarycookies", false),
-        ("Mathematik/../../secret", false),
-        ("/etc/passwd", false),
-        ("Mathematik//x.pdf", false),
-        ("./x.pdf", false),
-        ("", false),
-    ])
-    func syncedFileNamesStayInScans(name: String, safe: Bool) {
-        #expect(ExamFiles.isSafe(name) == safe)
-        #expect((ExamFiles.locate(name) != nil) == safe)
-    }
-
     func request(_ url: String, method: String = "GET") -> URLRequest {
         var r = URLRequest(url: URL(string: url)!)
         r.httpMethod = method
@@ -90,11 +75,9 @@ struct AuditFixTests {
 
     @MainActor @Test func disconnectStopsRunningImports() {
         let model = AppModel(store: nil)
-        let untis = model.untisGeneration, teams = model.teamsGeneration
+        let untis = model.untisGeneration
         model.mutate { $0.untis = UntisLink(server: "s.webuntis.com", loginName: "x", schoolName: "", user: "y") }
         model.disconnectUntis()
-        model.disconnectTeams()
         #expect(model.untisGeneration == untis + 1)
-        #expect(model.teamsGeneration == teams + 1)
     }
 }

@@ -1,7 +1,7 @@
 import MeldoKit
 import MeldoState
 import Testing
-@testable import MeldePlanner
+@testable import MeldoUntis
 
 @Suite("Entschuldigung")
 struct ExcuseNoteTests {

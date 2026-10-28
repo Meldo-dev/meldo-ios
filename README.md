@@ -39,15 +39,39 @@ The App Store release is coming soon. The website is [meldo.dev](https://meldo.d
 ## How it's built
 
 ```
-MeldePlanner/        SwiftUI app (iOS 26, Liquid Glass): App, Data, DesignSystem, Navigation, Features
+MeldePlanner/        The app target: entry point, navigation, the feature list (App/FeatureList.swift)
+Packages/            Local Swift packages, one per module (below)
 MeldeWidgets/        Widgets, Live Activity, Control Center button
-Shared/              Models, store, engine and intents shared by the app and the widgets
+Shared/              The Melden intent, compiled into the app and the widgets
 MeldeCore/           Swift package wrapping the Rust core (generated bindings + XCFramework)
 core/                meldo-core as a git submodule: Rust crates and the shared string catalog
-MeldePlannerTests/   Unit tests (Swift Testing)
 MeldePlannerUITests/ UI walk-through and App Store screenshots
 scripts/, tools/     Build helpers, icon and store-screenshot renderers
 ```
+
+### Modules
+
+```
+App target            entry point, RootView, FeatureList.swift
+ ├─ features          MeldoDashboard, MeldoTimetable, MeldoParticipation, MeldoTasks, MeldoGrades,
+ │                    MeldoCalendar, MeldoStatistics, MeldoExams, MeldoHolidays, MeldoSubjects,
+ │                    MeldoOnboarding, MeldoSettings
+ ├─ integrations      MeldoUntis (with Abwesenheiten and Entschuldigung), MeldoTeams, MeldoDrive
+ └─ core              MeldoUI     design system, shared rows and sheets, feature registry, Mehr
+                      MeldoState  AppModel: data, mutate(), preferences, shared lookups, module hooks
+                      MeldoKit    models (AppData), local store, sync merge, localization, engine glue
+```
+
+Dependencies only point down, and features never import each other. Each feature describes itself
+once as a `MeldoFeature` (title, symbol, where it sits in the navigation, its screen, Start cards,
+settings section, screens it offers to others, launch and refresh hooks). The tab bar, the iPad
+sidebar, Mehr, Start and Einstellungen are built from the list in `App/FeatureList.swift`. Features
+link to each other by route (`MeldoRoute`); a link to a feature that isn't built in doesn't show.
+
+To leave a feature out, delete its line in `FeatureList.swift`, its `import` there and its package
+from `project.yml`, then run `xcodegen generate`. `AppData` and the sync format don't change, so a build
+without a feature still reads and syncs data written by one with it. Tests live in each package's
+`Tests/` folder and run with the app scheme.
 
 Grade math, timetable derivation, WebUntis parsing and statistics are written once in Rust in [meldo-core](https://github.com/meldo-dev/meldo-core), and the Android app uses the same code. [XcodeGen](https://github.com/yonaskolb/XcodeGen) generates the Xcode project from `project.yml`.
 

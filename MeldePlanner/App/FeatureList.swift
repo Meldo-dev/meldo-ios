@@ -1,5 +1,6 @@
 import MeldoCalendar
 import MeldoDashboard
+import MeldoDrive
 import MeldoExams
 import MeldoGrades
 import MeldoHolidays
@@ -11,8 +12,10 @@ import MeldoState
 import MeldoStatistics
 import MeldoSubjects
 import MeldoTasks
+import MeldoTeams
 import MeldoTimetable
 import MeldoUI
+import MeldoUntis
 import SwiftUI
 
 extension MeldoFeatures {
