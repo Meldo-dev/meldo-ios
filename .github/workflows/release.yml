@@ -17,7 +17,29 @@ permissions:
   contents: read
 
 jobs:
+  on-branch:
+    # A tag can point at any commit, so check that the release comes from a branch that went
+    # through review before the release key or a published build gets involved.
+    name: Release commit is on main, beta or alpha
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Refuse commits that are on no release branch
+        run: |
+          for branch in main beta alpha; do
+            if git merge-base --is-ancestor "$GITHUB_SHA" "origin/$branch" 2>/dev/null; then
+              echo "$GITHUB_SHA is on $branch."
+              exit 0
+            fi
+          done
+          echo "::error::$GITHUB_SHA is not on main, beta or alpha. Merge it first, then tag."
+          exit 1
+
   ios:
+    needs: [on-branch]
     uses: ./.github/workflows/ios.yml
     secrets:
       MELDO_GOOGLE_CLIENT_ID_IOS: ${{ secrets.MELDO_GOOGLE_CLIENT_ID_IOS }}
