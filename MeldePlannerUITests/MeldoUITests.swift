@@ -375,6 +375,8 @@ final class MeldoUITests: XCTestCase {
     private func storeShotsIPhone(_ language: String) {
         let l = { self.label($0, language) }
         let app = launch(seed: true, language: language)
+        // Foreground isn't enough: right after the launch the screenshot can still be the home screen.
+        _ = app.buttons[l("Start")].firstMatch.waitForExistence(timeout: 20)
         shot(app, "store-\(language)-1-start", settle: 5)
         tab(app, l("Stundenplan"))
         shot(app, "store-\(language)-2-timetable", settle: 5)
