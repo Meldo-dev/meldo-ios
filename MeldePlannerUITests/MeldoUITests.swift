@@ -393,6 +393,81 @@ final class MeldoUITests: XCTestCase {
         }
     }
 
+    /// Website captures of the lesson Live Activity and the after-lesson check-in in
+    /// Notification Center, named "notif-<language>-<n>-<what>". Attach mode only: it
+    /// needs a real iPhone, where the host starts Meldo in demo mode.
+    func test21_notificationShots() throws {
+        guard let language = storeLanguage, device == "iphone" else { throw XCTSkip("needs attach mode on an iPhone") }
+        let en = language == "en"
+        let app = launch(seed: true, language: language)
+        let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
+        func capture(_ name: String, settle: TimeInterval = 2) {
+            RunLoop.current.run(until: Date().addingTimeInterval(settle))
+            let attachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+            attachment.name = "notif-\(language)-\(name)"
+            attachment.lifetime = .keepAlways
+            add(attachment)
+        }
+        // The system asks once per install; accept so the test notification can arrive.
+        func allowIfAsked() {
+            let allow = springboard.buttons.matching(NSPredicate(format: "label IN {'Allow', 'Erlauben'}")).firstMatch
+            if allow.waitForExistence(timeout: 2) { allow.tap() }
+        }
+
+        tab(app, label("Mehr", language))
+        // Status is at the end of Mehr; the list loads rows only once they scroll in.
+        let status = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Status'")).firstMatch
+        for _ in 0..<5 where !(status.exists && status.isHittable) { app.swipeUp() }
+        tap(status, "Status in Mehr")
+        tap(app.buttons[en ? "Show preview" : "Vorschau anzeigen"].firstMatch, "Live Activity preview")
+        allowIfAsked()
+        // German reads "Testmitteilung in 5 Sekunden", English "Test notification in 5 seconds".
+        let test = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] '5 Sek' OR label CONTAINS[c] '5 sec'")).firstMatch
+        tap(test, "test notification")
+        allowIfAsked()
+        capture("0-status", settle: 1)
+
+        // Notification Center: swipe down from the top-left edge of the home screen.
+        XCUIDevice.shared.press(.home)
+        // Let the notification arrive and its banner leave, so it is listed in Notification Center.
+        RunLoop.current.run(until: Date().addingTimeInterval(12))
+        let body = en ? "Did you raise your hand?" : "Hast du dich gemeldet?"
+        let notification = springboard.descendants(matching: .any)
+            .matching(NSPredicate(format: "label CONTAINS %@", body)).firstMatch
+        var found = false
+        for _ in 0..<3 where !found {
+            let top = springboard.coordinate(withNormalizedOffset: CGVector(dx: 0.2, dy: 0.003))
+            top.press(forDuration: 0.05, thenDragTo: springboard.coordinate(withNormalizedOffset: CGVector(dx: 0.2, dy: 0.6)))
+            found = notification.waitForExistence(timeout: 5)
+            if !found { XCUIDevice.shared.press(.home); RunLoop.current.run(until: Date().addingTimeInterval(1)) }
+        }
+        XCTAssertTrue(found, "check-in notification in Notification Center")
+        // A single notification can sit collapsed at the bottom ("1 Notification"), where a
+        // long-press opens it instead; a short drag up lists it above the Live Activity's edge.
+        RunLoop.current.run(until: Date().addingTimeInterval(2))
+        springboard.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.78))
+            .press(forDuration: 0.1, thenDragTo: springboard.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.55)))
+        capture("1-live", settle: 4)
+
+        // Long-press shows the answer buttons. Don't tap them: an answer would reach the real store.
+        if notification.exists {
+            notification.press(forDuration: 1.2)
+            XCTAssertTrue(springboard.buttons[en ? "Yes, once" : "Ja, einmal"].waitForExistence(timeout: 5), "answer buttons")
+            capture("2-checkin")
+            // Close the expanded notification by tapping above it, then clear it.
+            springboard.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.08)).tap()
+            RunLoop.current.run(until: Date().addingTimeInterval(1))
+            if notification.waitForExistence(timeout: 3) {
+                notification.swipeLeft()
+                let clear = springboard.buttons.matching(NSPredicate(format: "label IN {'Clear', 'Löschen', 'Entfernen'}")).firstMatch
+                if clear.waitForExistence(timeout: 2) { clear.tap() }
+            }
+        }
+        XCUIDevice.shared.press(.home)
+        RunLoop.current.run(until: Date().addingTimeInterval(1))
+        XCUIDevice.shared.press(.home)
+    }
+
     /// First run: the tour, a language switch that must not close it, every
     /// page, then "Fach selbst anlegen" ends on Start with Melden one tap away.
     func test10_onboardingToFirstSubject() {
