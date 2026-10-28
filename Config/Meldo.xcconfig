@@ -1,0 +1,7 @@
+// OAuth client IDs (Google Drive sync, Microsoft Teams). They are not in the repo:
+// copy Secrets.example.xcconfig to Secrets.xcconfig (gitignored) and fill it in;
+// CI writes Secrets.xcconfig from the MELDO_GOOGLE_CLIENT_ID_IOS / MELDO_TEAMS_CLIENT_ID secrets.
+// Empty values build fine; the app then shows those features as not available.
+MELDO_GOOGLE_CLIENT_ID =
+MELDO_TEAMS_CLIENT_ID =
+#include? "Secrets.xcconfig"

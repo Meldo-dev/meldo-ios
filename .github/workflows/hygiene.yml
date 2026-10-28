@@ -1,0 +1,28 @@
+name: Hygiene
+
+# Only source code belongs here: no notes from private tooling, no credentials.
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: No private tooling or notes
+        run: |
+          if git ls-files | grep -E '(^|/)(\.claude|vault|graphify-out|\.serena)/|(^|/)CLAUDE\.md$'; then
+            echo "::error::Private folders or files are tracked (listed above)."; exit 1
+          fi
+          if git grep -nIiE 'claude|anthropic|graphify|obsidian|ADR-[0-9]{4}' -- ':!.github/workflows/hygiene.yml'; then
+            echo "::error::References to private tooling or notes (listed above)."; exit 1
+          fi
+      - name: No credentials
+        run: |
+          if git grep -nIE '[0-9]{6,}-[a-z0-9]{20,}\.apps\.googleusercontent\.com|-----BEGIN [A-Z ]*PRIVATE KEY|AIza[0-9A-Za-z_-]{35}|ghp_[A-Za-z0-9]{30,}' -- ':!.github/workflows/hygiene.yml'; then
+            echo "::error::Something that looks like a client ID or key (listed above)."; exit 1
+          fi

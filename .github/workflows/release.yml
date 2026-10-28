@@ -1,0 +1,55 @@
+name: Release
+
+# Builds the unsigned iOS IPA with the regular build workflow (including its tests) and
+# publishes it as a GitHub pre-release.
+#   git tag v0.9.0 && git push origin v0.9.0
+# or run it from the Actions tab with a tag name. App Store builds go through testflight.yml.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag, e.g. v0.9.0 (created on the selected branch if missing)"
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  ios:
+    uses: ./.github/workflows/ios.yml
+    secrets:
+      MELDO_GOOGLE_CLIENT_ID_IOS: ${{ secrets.MELDO_GOOGLE_CLIENT_ID_IOS }}
+      MELDO_TEAMS_CLIENT_ID: ${{ secrets.MELDO_TEAMS_CLIENT_ID }}
+
+  publish:
+    name: Publish GitHub Release
+    needs: [ios]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      TAG: ${{ inputs.tag || github.ref_name }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: MeldePlanner-unsigned-ipa
+          path: dist/ios
+
+      - name: Create the release
+        run: |
+          mkdir -p release
+          cp dist/ios/*.ipa "release/Meldo-$TAG-unsigned.ipa"
+          notes=$(cat <<'NOTES'
+          `Meldo-*-unsigned.ipa` is not signed. Sideload it with AltStore or Sideloadly, which sign it with your Apple ID (iOS 26+). The App Store version is the easier way to install Meldo.
+          NOTES
+          )
+          gh release create "$TAG" release/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "Meldo $TAG for iOS" \
+            --prerelease \
+            --notes "$notes" \
+            --generate-notes

@@ -1,0 +1,90 @@
+{
+  "outDir": "store-mockups/en",
+  "statusDate": "Fri Oct 23",
+  "shots": [
+    {
+      "device": "iphone",
+      "image": "store-mockups/raw/en/iphone-1-start.png",
+      "out": "iphone-01-start.png",
+      "headline": "One tap per *raised hand.*",
+      "sub": "Meldo counts how often you speak up. Grading is up to your teacher."
+    },
+    {
+      "device": "iphone",
+      "image": "store-mockups/raw/en/iphone-2-timetable.png",
+      "out": "iphone-02-stundenplan.png",
+      "headline": "Your timetable, *always up to date.*",
+      "sub": "See substitutions and cancellations right away."
+    },
+    {
+      "device": "iphone",
+      "image": "store-mockups/raw/en/iphone-3-lesson.png",
+      "out": "iphone-03-stunde.png",
+      "headline": "Tap a lesson, *see it all.*",
+      "sub": "Teacher, room and the homework, right there."
+    },
+    {
+      "device": "iphone",
+      "image": "store-mockups/raw/en/iphone-4-tasks.png",
+      "out": "iphone-04-aufgaben.png",
+      "headline": "Homework, *never forgotten.*",
+      "sub": "With reminders, so nothing slips through."
+    },
+    {
+      "device": "iphone",
+      "image": "store-mockups/raw/en/iphone-5-calendar.png",
+      "out": "iphone-05-kalender.png",
+      "headline": "Exams *at a glance.*",
+      "sub": "The whole month with exams, homework and contributions."
+    },
+    {
+      "device": "iphone",
+      "image": "store-mockups/raw/en/iphone-6-statistics.png",
+      "out": "iphone-06-statistik.png",
+      "headline": "See how often *you speak up.*",
+      "sub": "Per day and per subject, with a weekly goal and streak."
+    },
+    {
+      "device": "ipad-landscape",
+      "image": "store-mockups/raw/en/ipad-1-start.png",
+      "out": "ipad-01-start.png",
+      "headline": "Your school day. *At a glance.*",
+      "sub": "Lessons, homework and contributions on one page."
+    },
+    {
+      "device": "ipad-landscape",
+      "image": "store-mockups/raw/en/ipad-2-timetable.png",
+      "out": "ipad-02-stundenplan.png",
+      "headline": "Your timetable, *always up to date.*",
+      "sub": "See substitutions and cancellations right away."
+    },
+    {
+      "device": "ipad-landscape",
+      "image": "store-mockups/raw/en/ipad-3-lesson.png",
+      "out": "ipad-03-stunde.png",
+      "headline": "Tap a lesson, *see it all.*",
+      "sub": "Teacher, room and the homework, right there."
+    },
+    {
+      "device": "ipad-landscape",
+      "image": "store-mockups/raw/en/ipad-6-calendar.png",
+      "out": "ipad-04-kalender.png",
+      "headline": "Exams *at a glance.*",
+      "sub": "The whole month with exams, homework and contributions."
+    },
+    {
+      "device": "ipad-landscape",
+      "image": "store-mockups/raw/en/ipad-7-statistics.png",
+      "out": "ipad-05-statistik.png",
+      "headline": "See how often *you speak up.*",
+      "sub": "Per day and per subject, with a weekly goal and streak."
+    },
+    {
+      "device": "ipad-landscape",
+      "image": "store-mockups/raw/en/ipad-4-tasks.png",
+      "out": "ipad-06-aufgaben.png",
+      "headline": "Homework, *never forgotten.*",
+      "sub": "With reminders, so nothing slips through."
+    }
+  ]
+}
