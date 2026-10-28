@@ -1,6 +1,7 @@
 import MeldoKit
 import MeldoState
 import SwiftUI
+import UIKit
 
 /// How many grid columns a card spans.
 private nonisolated struct CardSpanKey: LayoutValueKey {
@@ -145,6 +146,10 @@ where Kind: Codable & Hashable & Sendable & CaseIterable & RawRepresentable, Kin
     /// Finger position, and where on the card it grabbed, in grid coordinates.
     @State private var pointer = CGPoint.zero
     @State private var grab = CGSize.zero
+    /// Size of the lifted card when it was picked up.
+    @State private var lifted = CGSize.zero
+    /// True while a dropped card flies back into its slot.
+    @State private var settling = false
     /// Laid-out card frames in grid coordinates, for hit testing while dragging.
     @State private var frames: [Kind: CGRect] = [:]
     @State private var feedback = 0
@@ -161,6 +166,7 @@ where Kind: Codable & Hashable & Sendable & CaseIterable & RawRepresentable, Kin
                 }
             }
             .animation(reduceMotion ? nil : .spring(duration: 0.35, bounce: 0.2), value: shown)
+            .overlay(alignment: .topLeading) { liftedCard }
             .coordinateSpace(.named(gridSpace))
             if shown.isEmpty && !editing {
                 ContentUnavailableView {
@@ -190,19 +196,17 @@ where Kind: Codable & Hashable & Sendable & CaseIterable & RawRepresentable, Kin
         if editing {
             base
                 .allowsHitTesting(false)
+                // The whole card can be grabbed. The edit controls go on top afterwards, so a
+                // touch on the resize handle or the remove button never lifts the card.
+                .contentShape(.rect(cornerRadius: DS.cardRadius))
+                .gesture(LiftGesture(space: gridSpace) { state, point in lift(slot.kind, state, at: point) })
                 .overlay { editChrome(slot) }
                 .onGeometryChange(for: CGRect.self) { $0.frame(in: .named(gridSpace)) } action: {
                     frames[slot.kind] = $0
                 }
                 .modifier(Wiggle(active: !reduceMotion && dragging != slot.kind))
-                // The lifted card itself follows the finger, a little bigger, above the others.
-                .scaleEffect(dragging == slot.kind ? 1.04 : 1)
-                .shadow(color: .black.opacity(dragging == slot.kind ? 0.3 : 0), radius: 16, y: 8)
-                .offset(offset(of: slot.kind))
-                .zIndex(dragging == slot.kind ? 1 : 0)
-                // The whole card can be grabbed, not just its buttons.
-                .contentShape(.rect(cornerRadius: DS.cardRadius))
-                .gesture(moveGesture(slot.kind))
+                // Its slot stays empty while the lifted copy follows the finger.
+                .opacity(dragging == slot.kind ? 0 : 1)
         } else {
             base
                 .onLongPressGesture(minimumDuration: 0.6) {
@@ -272,29 +276,45 @@ where Kind: Codable & Hashable & Sendable & CaseIterable & RawRepresentable, Kin
 
     private var gridSpace: String { "cardGrid" }
 
-    /// Hold a card briefly, then drag it; the others move aside as it passes over them.
-    private func moveGesture(_ kind: Kind) -> some Gesture {
-        LongPressGesture(minimumDuration: 0.25)
-            .sequenced(before: DragGesture(minimumDistance: 0, coordinateSpace: .named(gridSpace)))
-            .onChanged { value in
-                guard case .second(true, let drag?) = value else { return }
-                if dragging == nil, let frame = frames[kind] {
-                    grab = CGSize(width: drag.startLocation.x - frame.minX, height: drag.startLocation.y - frame.minY)
-                    liveOrder = slots
-                    hovered = nil
-                    feedback += 1
-                    withAnimation(.spring(duration: 0.25)) { dragging = kind }
-                }
-                pointer = drag.location
-                move(kind, over: drag.location)
-            }
-            .onEnded { _ in finishDrag() }
+    /// The card being moved, drawn above the grid exactly where the finger holds it.
+    @ViewBuilder
+    private var liftedCard: some View {
+        if let kind = dragging, let slot = shown.first(where: { $0.kind == kind }) {
+            let target = frames[kind] ?? .zero
+            let size = settling ? target.size : lifted
+            content(kind, slot.size)
+                .frame(width: size.width, height: size.height, alignment: .top)
+                .overlay { editChrome(slot) }
+                .allowsHitTesting(false)
+                .scaleEffect(settling ? 1 : 1.04)
+                .shadow(color: .black.opacity(settling ? 0 : 0.3), radius: 16, y: 8)
+                .offset(settling
+                    ? CGSize(width: target.minX, height: target.minY)
+                    : CGSize(width: pointer.x - grab.width, height: pointer.y - grab.height))
+                .transition(.identity)
+        }
     }
 
-    /// Keeps the lifted card under the finger while its slot moves.
-    private func offset(of kind: Kind) -> CGSize {
-        guard dragging == kind, let frame = frames[kind] else { return .zero }
-        return CGSize(width: pointer.x - grab.width - frame.minX, height: pointer.y - grab.height - frame.minY)
+    private func lift(_ kind: Kind, _ state: UIGestureRecognizer.State, at point: CGPoint) {
+        switch state {
+        case .began:
+            guard dragging == nil, let frame = frames[kind] else { return }
+            grab = CGSize(width: point.x - frame.minX, height: point.y - frame.minY)
+            lifted = frame.size
+            pointer = point
+            liveOrder = slots
+            hovered = nil
+            settling = false
+            feedback += 1
+            dragging = kind
+        case .changed:
+            guard dragging == kind, !settling else { return }
+            pointer = point
+            move(kind, over: point)
+        default:
+            guard dragging == kind else { return }
+            finishDrag()
+        }
     }
 
     /// Entering another card moves the dragged one to its place, like app icons on the Home Screen.
@@ -312,11 +332,15 @@ where Kind: Codable & Hashable & Sendable & CaseIterable & RawRepresentable, Kin
 
     private func finishDrag() {
         if let order = liveOrder, order != slots { save(order) }
-        // The card settles back into its slot.
-        withAnimation(reduceMotion ? nil : .spring(duration: 0.35, bounce: 0.2)) {
-            liveOrder = nil
+        liveOrder = nil
+        hovered = nil
+        guard dragging != nil, !settling else { return }
+        // The lifted card flies into its slot, then the slot shows the card again.
+        withAnimation(reduceMotion ? nil : .spring(duration: 0.3, bounce: 0.15)) {
+            settling = true
+        } completion: {
             dragging = nil
-            hovered = nil
+            settling = false
         }
     }
 
@@ -338,6 +362,25 @@ where Kind: Codable & Hashable & Sendable & CaseIterable & RawRepresentable, Kin
     private func hide(_ kind: Kind) {
         feedback += 1
         save(slots.filter { $0.kind != kind })
+    }
+}
+
+/// Moving a card starts with a UIKit long press, so the scroll view keeps working: a finger
+/// that moves right away scrolls the page, one that rests a moment lifts the card. Locations
+/// are reported in the grid's coordinate space.
+private struct LiftGesture: UIGestureRecognizerRepresentable {
+    var space: String
+    var onChange: (UIGestureRecognizer.State, CGPoint) -> Void
+
+    func makeUIGestureRecognizer(context: Context) -> UILongPressGestureRecognizer {
+        let recognizer = UILongPressGestureRecognizer()
+        recognizer.minimumPressDuration = 0.2
+        recognizer.allowableMovement = 12
+        return recognizer
+    }
+
+    func handleUIGestureRecognizerAction(_ recognizer: UILongPressGestureRecognizer, context: Context) {
+        onChange(recognizer.state, context.converter.location(in: .named(space)))
     }
 }
 
