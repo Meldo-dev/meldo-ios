@@ -1,7 +1,6 @@
 import MeldoKit
 import MeldoState
 import SwiftUI
-import UniformTypeIdentifiers
 
 /// How many grid columns a card spans.
 private nonisolated struct CardSpanKey: LayoutValueKey {
@@ -141,6 +140,13 @@ where Kind: Codable & Hashable & Sendable & CaseIterable & RawRepresentable, Kin
     /// The order while a card is being dragged; saved when it's dropped.
     @State private var liveOrder: [CardSlot<Kind>]?
     @State private var dragging: Kind?
+    /// The card the finger was over last, so a card is only moved once per entry.
+    @State private var hovered: Kind?
+    /// Finger position, and where on the card it grabbed, in grid coordinates.
+    @State private var pointer = CGPoint.zero
+    @State private var grab = CGSize.zero
+    /// Laid-out card frames in grid coordinates, for hit testing while dragging.
+    @State private var frames: [Kind: CGRect] = [:]
     @State private var feedback = 0
 
     private var columns: Int { sizeClass == .regular ? 4 : 2 }
@@ -155,6 +161,7 @@ where Kind: Codable & Hashable & Sendable & CaseIterable & RawRepresentable, Kin
                 }
             }
             .animation(reduceMotion ? nil : .spring(duration: 0.35, bounce: 0.2), value: shown)
+            .coordinateSpace(.named(gridSpace))
             if shown.isEmpty && !editing {
                 ContentUnavailableView {
                     Label(L("Alle Karten ausgeblendet"), systemImage: "square.grid.2x2")
@@ -170,8 +177,6 @@ where Kind: Codable & Hashable & Sendable & CaseIterable & RawRepresentable, Kin
                     .transition(.opacity.combined(with: .move(edge: .bottom)))
             }
         }
-        // A card dropped between cards still ends the drag.
-        .onDrop(of: [.text], delegate: GridDropDelegate(onFinish: { finishDrag() }))
         .sensoryFeedback(.selection, trigger: feedback)
         .onChange(of: editing) { _, now in
             if !now { finishDrag() }
@@ -186,22 +191,18 @@ where Kind: Codable & Hashable & Sendable & CaseIterable & RawRepresentable, Kin
             base
                 .allowsHitTesting(false)
                 .overlay { editChrome(slot) }
-                .opacity(dragging == slot.kind ? 0.4 : 1)
-                .modifier(Wiggle(active: !reduceMotion))
-                // The whole card can be grabbed, not just its buttons.
-                .contentShape([.interaction, .dragPreview], .rect(cornerRadius: DS.cardRadius))
-                .onDrag {
-                    dragging = slot.kind
-                    liveOrder = slots
-                    return NSItemProvider(object: slot.kind.rawValue as NSString)
+                .onGeometryChange(for: CGRect.self) { $0.frame(in: .named(gridSpace)) } action: {
+                    frames[slot.kind] = $0
                 }
-                .onDrop(of: [.text], delegate: CardDropDelegate(
-                    target: slot.kind,
-                    dragging: $dragging,
-                    order: $liveOrder,
-                    onMove: { feedback += 1 },
-                    onFinish: { finishDrag() }
-                ))
+                .modifier(Wiggle(active: !reduceMotion && dragging != slot.kind))
+                // The lifted card itself follows the finger, a little bigger, above the others.
+                .scaleEffect(dragging == slot.kind ? 1.04 : 1)
+                .shadow(color: .black.opacity(dragging == slot.kind ? 0.3 : 0), radius: 16, y: 8)
+                .offset(offset(of: slot.kind))
+                .zIndex(dragging == slot.kind ? 1 : 0)
+                // The whole card can be grabbed, not just its buttons.
+                .contentShape(.rect(cornerRadius: DS.cardRadius))
+                .gesture(moveGesture(slot.kind))
         } else {
             base
                 .onLongPressGesture(minimumDuration: 0.6) {
@@ -269,10 +270,54 @@ where Kind: Codable & Hashable & Sendable & CaseIterable & RawRepresentable, Kin
         }
     }
 
+    private var gridSpace: String { "cardGrid" }
+
+    /// Hold a card briefly, then drag it; the others move aside as it passes over them.
+    private func moveGesture(_ kind: Kind) -> some Gesture {
+        LongPressGesture(minimumDuration: 0.25)
+            .sequenced(before: DragGesture(minimumDistance: 0, coordinateSpace: .named(gridSpace)))
+            .onChanged { value in
+                guard case .second(true, let drag?) = value else { return }
+                if dragging == nil, let frame = frames[kind] {
+                    grab = CGSize(width: drag.startLocation.x - frame.minX, height: drag.startLocation.y - frame.minY)
+                    liveOrder = slots
+                    hovered = nil
+                    feedback += 1
+                    withAnimation(.spring(duration: 0.25)) { dragging = kind }
+                }
+                pointer = drag.location
+                move(kind, over: drag.location)
+            }
+            .onEnded { _ in finishDrag() }
+    }
+
+    /// Keeps the lifted card under the finger while its slot moves.
+    private func offset(of kind: Kind) -> CGSize {
+        guard dragging == kind, let frame = frames[kind] else { return .zero }
+        return CGSize(width: pointer.x - grab.width - frame.minX, height: pointer.y - grab.height - frame.minY)
+    }
+
+    /// Entering another card moves the dragged one to its place, like app icons on the Home Screen.
+    private func move(_ kind: Kind, over point: CGPoint) {
+        let over = shown.first { $0.kind != kind && frames[$0.kind]?.contains(point) == true }?.kind
+        guard over != hovered else { return }
+        hovered = over
+        guard let over, var list = liveOrder,
+              let from = list.firstIndex(where: { $0.kind == kind }),
+              let to = list.firstIndex(where: { $0.kind == over }) else { return }
+        list.insert(list.remove(at: from), at: to)
+        liveOrder = list
+        feedback += 1
+    }
+
     private func finishDrag() {
         if let order = liveOrder, order != slots { save(order) }
-        liveOrder = nil
-        dragging = nil
+        // The card settles back into its slot.
+        withAnimation(reduceMotion ? nil : .spring(duration: 0.35, bounce: 0.2)) {
+            liveOrder = nil
+            dragging = nil
+            hovered = nil
+        }
     }
 
     private func resize(_ kind: Kind, to size: CardSize) {
@@ -293,48 +338,6 @@ where Kind: Codable & Hashable & Sendable & CaseIterable & RawRepresentable, Kin
     private func hide(_ kind: Kind) {
         feedback += 1
         save(slots.filter { $0.kind != kind })
-    }
-}
-
-/// Reorders while a card is dragged over others, like app icons on the Home Screen.
-private struct CardDropDelegate<Kind: Codable & Hashable & Sendable>: DropDelegate {
-    let target: Kind
-    @Binding var dragging: Kind?
-    @Binding var order: [CardSlot<Kind>]?
-    var onMove: () -> Void
-    var onFinish: () -> Void
-
-    func dropEntered(info: DropInfo) {
-        guard let dragging, dragging != target, var list = order,
-              let from = list.firstIndex(where: { $0.kind == dragging }),
-              let to = list.firstIndex(where: { $0.kind == target }) else { return }
-        let slot = list.remove(at: from)
-        list.insert(slot, at: to)
-        order = list
-        onMove()
-    }
-
-    func dropUpdated(info: DropInfo) -> DropProposal? {
-        DropProposal(operation: .move)
-    }
-
-    func performDrop(info: DropInfo) -> Bool {
-        onFinish()
-        return true
-    }
-}
-
-/// Ends a drag that was dropped on the grid but not on a card.
-private struct GridDropDelegate: DropDelegate {
-    var onFinish: () -> Void
-
-    func dropUpdated(info: DropInfo) -> DropProposal? {
-        DropProposal(operation: .move)
-    }
-
-    func performDrop(info: DropInfo) -> Bool {
-        onFinish()
-        return true
     }
 }
 
