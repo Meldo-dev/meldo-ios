@@ -1,12 +1,10 @@
 import Foundation
 import MeldoKit
-import MeldoState
+@testable import MeldoState
 import Testing
-import UIKit
-@testable import MeldePlanner
 
-@Suite("Tasks, exams and data migration")
-struct TaskAndExamTests {
+@Suite("Tasks and data migration")
+struct TaskTests {
     let calendar: Calendar = {
         var c = Calendar(identifier: .gregorian)
         c.timeZone = TimeZone(identifier: "Europe/Berlin")!
@@ -101,21 +99,5 @@ struct TaskAndExamTests {
         let left = try fm.contentsOfDirectory(atPath: folder.path(percentEncoded: false)).sorted()
         // The migration copy and an old unreadable copy go; a recent one and the data stay.
         #expect(left == ["data-unreadable-\(Int(now.timeIntervalSince1970) - 3600).json", "data.json"])
-    }
-
-    @Test func examPDFsAreStoredAndRemoved() throws {
-        let model = makeModel()
-        let image = UIGraphicsImageRenderer(size: CGSize(width: 200, height: 280)).image { ctx in
-            UIColor.white.setFill()
-            ctx.fill(CGRect(x: 0, y: 0, width: 200, height: 280))
-        }
-        let pdf = try #require(ExamFiles.pdf(from: [image, image]))
-        let exam = try model.addExam(pdf: pdf, title: "1. Klassenarbeit", subjectID: nil, date: day(21), grade: "2-", notes: "")
-        #expect(exam.pageCount == 2)
-        let url = try #require(model.fileURL(for: exam))
-        #expect(FileManager.default.fileExists(atPath: url.path(percentEncoded: false)))
-        model.deleteExam(exam.id)
-        #expect(!FileManager.default.fileExists(atPath: url.path(percentEncoded: false)))
-        #expect(model.exams.isEmpty)
     }
 }

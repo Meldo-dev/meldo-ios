@@ -5,7 +5,7 @@ import SwiftUI
 
 extension MeldoFeature {
     /// Kalender: exams, tasks, absences and Meldungen by day.
-    static var calendar: MeldoFeature {
+    public static var calendar: MeldoFeature {
         MeldoFeature(id: "calendar", title: { L("Kalender") }, symbol: "calendar", placement: .bar) {
             CalendarView()
         }

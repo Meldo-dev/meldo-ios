@@ -1,11 +1,17 @@
+import MeldoCalendar
+import MeldoDashboard
+import MeldoExams
 import MeldoGrades
 import MeldoHolidays
 import MeldoKit
+import MeldoOnboarding
 import MeldoParticipation
+import MeldoSettings
 import MeldoState
 import MeldoStatistics
 import MeldoSubjects
 import MeldoTasks
+import MeldoTimetable
 import MeldoUI
 import SwiftUI
 

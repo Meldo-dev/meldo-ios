@@ -5,7 +5,7 @@ import SwiftUI
 
 extension MeldoFeature {
     /// Stundenplan, and the lesson editor other screens open.
-    static var timetable: MeldoFeature {
+    public static var timetable: MeldoFeature {
         var feature = MeldoFeature(id: "timetable", title: { L("Stundenplan") }, symbol: "tablecells", placement: .pinned) {
             TimetableView()
         }

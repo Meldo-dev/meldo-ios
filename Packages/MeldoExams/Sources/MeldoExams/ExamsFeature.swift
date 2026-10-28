@@ -5,7 +5,7 @@ import SwiftUI
 
 extension MeldoFeature {
     /// Dokumente: scanned and imported PDFs by subject.
-    static var exams: MeldoFeature {
+    public static var exams: MeldoFeature {
         var feature = MeldoFeature(id: "exams", title: { L("Dokumente") }, symbol: "doc.on.doc", placement: .bar) {
             ExamListView()
         }
