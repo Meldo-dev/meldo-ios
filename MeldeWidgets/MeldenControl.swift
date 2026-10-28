@@ -1,4 +1,5 @@
 import AppIntents
+import MeldoKit
 import SwiftUI
 import WidgetKit
 

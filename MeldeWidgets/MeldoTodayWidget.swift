@@ -1,5 +1,6 @@
 import AppIntents
 import MeldeCore
+import MeldoKit
 import SwiftUI
 import WidgetKit
 

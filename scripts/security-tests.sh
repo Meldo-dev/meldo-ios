@@ -11,9 +11,11 @@ if [[ -z ${sim:-} ]]; then
 else
   xcodebuild test -project MeldePlanner.xcodeproj -scheme MeldePlanner \
     -destination "id=$sim" CODE_SIGNING_ALLOWED=NO \
-    -only-testing:MeldePlannerTests/SecurityTests \
-    -only-testing:MeldePlannerTests/AuditFixTests \
-    -only-testing:MeldePlannerTests/DriveSyncTests 2>&1 | grep -E "✔|✘|passed|failed|error:|\*\* TEST" | grep -v "Failed to delete history" || failed=1
+    -only-testing:MeldoUntisTests/SecurityTests \
+    -only-testing:MeldoUntisTests/AuditFixTests \
+    -only-testing:MeldoTeamsTests/AuditFixTests \
+    -only-testing:MeldoKitTests/ExamFilesTests \
+    -only-testing:MeldoDriveTests 2>&1 | grep -E "✔|✘|passed|failed|error:|\*\* TEST" | grep -v "Failed to delete history" || failed=1
 fi
 [[ $failed == 0 ]] && echo "== All security tests passed" || echo "== Some security tests failed (see above)"
 exit $failed

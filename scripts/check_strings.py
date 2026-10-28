@@ -14,7 +14,7 @@ import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SOURCES = ROOT / "MeldePlanner"
-SOURCE_DIRS = [SOURCES, ROOT / "Shared", ROOT / "MeldeWidgets"]
+SOURCE_DIRS = [SOURCES, ROOT / "Shared", ROOT / "MeldeWidgets", ROOT / "Packages"]
 CATALOG = ROOT / "core/l10n/Localizable.xcstrings"
 LANGUAGES = ("de", "en")
 
