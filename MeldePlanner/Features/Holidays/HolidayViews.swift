@@ -50,3 +50,44 @@ struct HolidayListView: View {
         .navigationTitle(L("Ferien"))
     }
 }
+
+/// How long until the next holidays, or how long they still last.
+struct NextHolidayCard: View {
+    @Environment(AppModel.self) private var model
+    var now: Date
+    var size: CardSize
+
+    var body: some View {
+        let today = model.calendar.startOfDay(for: now)
+        let holiday = model.upcomingHolidays(from: now).first
+        Card(title: L("Nächste Ferien"), systemImage: "sun.horizon") {
+            if let holiday {
+                let running = holiday.firstDay <= today
+                let target = running ? holiday.lastDay : holiday.firstDay
+                let days = max(model.calendar.dateComponents([.day], from: today, to: model.calendar.startOfDay(for: target)).day ?? 0, 0)
+                HStack(alignment: .firstTextBaseline, spacing: DS.spacingS) {
+                    Text(days, format: .number)
+                        .font(.system(size: size == .small ? 34 : 44, weight: .bold, design: .rounded))
+                        .monospacedDigit()
+                        .foregroundStyle(Color.untisHoliday)
+                    Text(running ? L("Tage Ferien übrig") : L("Tage bis dahin"))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Text(holiday.name).font(.headline)
+                if size != .small {
+                    Text(HolidayText.range(holiday))
+                        .font(.subheadline)
+                        .monospacedDigit()
+                        .foregroundStyle(.secondary)
+                }
+            } else {
+                Text(model.data.untis == nil
+                     ? L("Verbinde WebUntis, dann erscheinen hier die Ferien deiner Schule.")
+                     : L("Keine Ferien eingetragen"))
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+}

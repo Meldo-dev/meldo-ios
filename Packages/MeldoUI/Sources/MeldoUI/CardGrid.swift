@@ -123,9 +123,14 @@ where Kind: Codable & Hashable & Sendable & CaseIterable & RawRepresentable, Kin
     public var symbol: (Kind) -> String
     public var save: ([CardSlot<Kind>]) -> Void
     @ViewBuilder public var content: (Kind, CardSize) -> Content
+    /// The cards this build can show; the tray only offers these.
+    public var available: [Kind]
 
-    public init(slots: [CardSlot<Kind>], editing: Binding<Bool>, title: @escaping (Kind) -> String, symbol: @escaping (Kind) -> String, save: @escaping ([CardSlot<Kind>]) -> Void, @ViewBuilder content: @escaping (Kind, CardSize) -> Content) {
+    public init(slots: [CardSlot<Kind>], available: [Kind] = Array(Kind.allCases), editing: Binding<Bool>,
+                title: @escaping (Kind) -> String, symbol: @escaping (Kind) -> String,
+                save: @escaping ([CardSlot<Kind>]) -> Void, @ViewBuilder content: @escaping (Kind, CardSize) -> Content) {
         self.slots = slots
+        self.available = available
         self._editing = editing
         self.title = title
         self.symbol = symbol
@@ -246,7 +251,7 @@ where Kind: Codable & Hashable & Sendable & CaseIterable & RawRepresentable, Kin
 
     @ViewBuilder
     private var hiddenCards: some View {
-        let hidden = Array(Kind.allCases).filter { kind in !slots.contains { $0.kind == kind } }
+        let hidden = available.filter { kind in !slots.contains { $0.kind == kind } }
         if !hidden.isEmpty {
             VStack(alignment: .leading, spacing: DS.spacingS) {
                 Text(L("Weitere Karten"))

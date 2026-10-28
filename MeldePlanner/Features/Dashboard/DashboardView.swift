@@ -8,8 +8,8 @@ import SwiftUI
 /// preview to school messages. Adapts to what the student has set up.
 struct DashboardView: View {
     @Environment(AppModel.self) private var model
+    @Environment(\.features) private var features
     @State private var addingSubject = false
-    @State private var addingLesson = false
     @State private var editing = false
 
     var body: some View {
@@ -27,12 +27,13 @@ struct DashboardView: View {
                         }
                         CustomizableCardGrid(
                             slots: visibleSlots,
+                            available: features.dashboardCards.map(\.kind),
                             editing: $editing,
-                            title: { Self.title($0) },
-                            symbol: { Self.symbol($0) },
-                            save: { model.setHomeLayout($0) }
+                            title: { features.dashboardCard($0)?.title() ?? "" },
+                            symbol: { features.dashboardCard($0)?.symbol ?? "square" },
+                            save: save
                         ) { card, size in
-                            cardView(card, size: size)
+                            features.dashboardCard(card)?.content(model.currentDate, size)
                         }
                     }
                     .padding(DS.spacingL)
@@ -46,73 +47,21 @@ struct DashboardView: View {
                 }
             }
         }
-        .sheet(isPresented: $addingSubject) { SubjectEditorView(subject: nil) }
-        .sheet(isPresented: $addingLesson) { LessonEditorView(lesson: nil, weekday: model.calendar.mondayIndex(of: model.currentDate)) }
+        .sheet(.newSubject, isPresented: $addingSubject)
     }
 
-    /// Without WebUntis, its cards would only say "connect WebUntis" three times;
-    /// they stay hidden until then, except while arranging so they can be placed.
+    /// Cards of this build, in the student's order. Without WebUntis, its cards would only
+    /// say "connect WebUntis" three times; they stay hidden until then, except while
+    /// arranging so they can be placed.
     private var visibleSlots: [CardSlot<DashboardCard>] {
-        let layout = model.preferences.homeLayout
+        let layout = model.preferences.homeLayout.filter { features.dashboardCard($0.kind) != nil }
         guard model.data.untis == nil, !editing else { return layout }
-        let untisOnly: Set<DashboardCard> = [.exams, .news, .absences]
-        return layout.filter { !untisOnly.contains($0.kind) }
+        return layout.filter { features.dashboardCard($0.kind)?.needsUntis != true }
     }
 
-    @ViewBuilder
-    private func cardView(_ card: DashboardCard, size: CardSize) -> some View {
-        let now = model.currentDate
-        switch card {
-        case .today: TodayCard(now: now, size: size, addLesson: { addingLesson = true })
-        case .weekPreview: WeekPreviewCard(now: now, size: size)
-        case .participation: WeekParticipationCard(now: now, size: size)
-        case .streak: StreakCard(now: now, size: size)
-        case .homework: HomeworkCard(now: now, size: size)
-        case .exams: UpcomingExamsCard(now: now, size: size)
-        case .news: SchoolNewsCard(size: size)
-        case .absences: AbsencesCard(size: size)
-        case .nextLesson: NextLessonCard(now: now, size: size)
-        case .weekChart: WeekChartMiniCard(now: now, size: size)
-        case .nextHoliday: NextHolidayCard(now: now, size: size)
-        case .todos: TodosCard(now: now, size: size)
-        case .grades: GradesCard(size: size)
-        }
-    }
-
-    static func title(_ card: DashboardCard) -> String {
-        switch card {
-        case .today: L("Heute")
-        case .weekPreview: L("Woche")
-        case .participation: L("Meldungen diese Woche")
-        case .streak: L("Serie")
-        case .homework: L("Hausaufgaben")
-        case .exams: L("Prüfungen")
-        case .news: L("Nachrichten")
-        case .absences: L("Abwesenheiten")
-        case .nextLesson: L("Nächste Stunde")
-        case .weekChart: L("Wochenverlauf")
-        case .nextHoliday: L("Nächste Ferien")
-        case .todos: L("To-dos")
-        case .grades: L("Notenschnitt")
-        }
-    }
-
-    static func symbol(_ card: DashboardCard) -> String {
-        switch card {
-        case .today: "sun.max"
-        case .weekPreview: "calendar.day.timeline.left"
-        case .participation: "hand.raised"
-        case .streak: "flame"
-        case .homework: "book"
-        case .exams: "pencil.and.list.clipboard"
-        case .news: "megaphone"
-        case .absences: "person.crop.circle.badge.clock"
-        case .nextLesson: "clock"
-        case .weekChart: "chart.bar.xaxis"
-        case .nextHoliday: "sun.horizon"
-        case .todos: "checklist"
-        case .grades: "graduationcap"
-        }
+    /// Saves the arrangement and keeps the slots of cards this build doesn't have.
+    private func save(_ slots: [CardSlot<DashboardCard>]) {
+        model.setHomeLayout(slots + model.preferences.homeLayout.filter { features.dashboardCard($0.kind) == nil })
     }
 
     private func greeting(for date: Date) -> String {
@@ -141,7 +90,7 @@ private struct GettingStartedCard: View {
             }
             .buttonStyle(.glassProminent)
             .controlSize(.large)
-            NavigationLink { UntisConnectView() } label: {
+            RouteLink(.page("untis")) {
                 Label(L("Mit WebUntis verbinden"), systemImage: "arrow.triangle.2.circlepath")
                     .frame(maxWidth: .infinity)
             }
@@ -154,11 +103,14 @@ private struct GettingStartedCard: View {
 // MARK: - Day preview
 
 /// Today's lessons with Untis changes in color; small shows only what's next.
-private struct TodayCard: View {
+struct TodayCard: View {
     @Environment(AppModel.self) private var model
+    @Environment(\.features) private var features
     var now: Date
     var size: CardSize
-    var addLesson: () -> Void
+    @State private var addingLesson = false
+
+    private var newLesson: MeldoRoute { .newLesson(weekday: model.calendar.mondayIndex(of: now)) }
 
     private var minuteNow: Int {
         model.calendar.component(.hour, from: now) * 60 + model.calendar.component(.minute, from: now)
@@ -183,8 +135,10 @@ private struct TodayCard: View {
                 if model.lessons.isEmpty && model.data.untisTimetable == nil {
                     Text(L("Noch keine Stunden im Stundenplan."))
                         .foregroundStyle(.secondary)
-                    Button(L("Stunde hinzufügen"), systemImage: "plus", action: addLesson)
-                        .buttonStyle(.glass)
+                    if features.has(newLesson) {
+                        Button(L("Stunde hinzufügen"), systemImage: "plus") { addingLesson = true }
+                            .buttonStyle(.glass)
+                    }
                 } else {
                     HStack(spacing: DS.spacingM) {
                         if size != .small { Mascot(mood: .sleep, size: 56) }
@@ -226,6 +180,7 @@ private struct TodayCard: View {
                 }
             }
         }
+        .sheet(newLesson, isPresented: $addingLesson)
     }
 
     @ViewBuilder
@@ -256,7 +211,7 @@ private struct DayBlocks: Identifiable {
 }
 
 /// The school week at a glance: one mini column per day, changes in color.
-private struct WeekPreviewCard: View {
+struct WeekPreviewCard: View {
     @Environment(AppModel.self) private var model
     var now: Date
     var size: CardSize
@@ -363,7 +318,7 @@ private struct WeekPreviewCard: View {
 
 // MARK: - Participation
 
-private struct WeekParticipationCard: View {
+struct WeekParticipationCard: View {
     @Environment(AppModel.self) private var model
     var now: Date
     var size: CardSize
@@ -420,7 +375,7 @@ private struct WeekParticipationCard: View {
 }
 
 /// School days in a row with a Meldung, and on-time homework.
-private struct StreakCard: View {
+struct StreakCard: View {
     @Environment(AppModel.self) private var model
     var now: Date
     var size: CardSize
@@ -455,94 +410,3 @@ private struct StreakCard: View {
 }
 
 // MARK: - Exams, news, absences
-
-private struct UpcomingExamsCard: View {
-    @Environment(AppModel.self) private var model
-    var now: Date
-    var size: CardSize
-
-    var body: some View {
-        let exams = model.upcomingUntisExams(from: now)
-        Card(title: L("Prüfungen"), systemImage: "pencil.and.list.clipboard") {
-            if exams.isEmpty {
-                Text(model.data.untis == nil
-                     ? L("Verbinde WebUntis, dann erscheinen hier deine Prüfungstermine.")
-                     : L("Keine Prüfungen eingetragen."))
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            } else {
-                let limit = size == .small ? 1 : (size == .medium ? 3 : 8)
-                VStack(alignment: .leading, spacing: DS.spacingS) {
-                    ForEach(exams.prefix(limit)) { exam in
-                        UntisExamRow(exam: exam, now: now, compact: size == .small)
-                    }
-                }
-            }
-        }
-    }
-}
-
-private struct SchoolNewsCard: View {
-    @Environment(AppModel.self) private var model
-    var size: CardSize
-
-    var body: some View {
-        let news = model.data.untisExtras?.news ?? []
-        Card(title: L("Nachrichten"), systemImage: "megaphone") {
-            if news.isEmpty {
-                Text(model.data.untis == nil
-                     ? L("Verbinde WebUntis, um Nachrichten deiner Schule zu sehen.")
-                     : L("Heute keine Nachrichten von der Schule."))
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            } else {
-                ForEach(news.prefix(size == .large ? 6 : (size == .medium ? 2 : 1))) { message in
-                    VStack(alignment: .leading, spacing: 2) {
-                        if !message.subject.isEmpty {
-                            Text(message.subject).font(.subheadline.weight(.semibold))
-                        }
-                        if size != .small {
-                            Text(message.text)
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                                .lineLimit(size == .large ? nil : 3)
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-private struct AbsencesCard: View {
-    @Environment(AppModel.self) private var model
-    var size: CardSize
-
-    var body: some View {
-        let absences = model.data.untisExtras?.absences ?? []
-        let open = absences.filter { !$0.excused }.count
-        Card(title: L("Abwesenheiten"), systemImage: "person.crop.circle.badge.clock") {
-            if model.data.untis == nil {
-                Text(L("Verbinde WebUntis, um deine Fehlzeiten zu sehen."))
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            } else {
-                HStack(alignment: .firstTextBaseline, spacing: DS.spacingS) {
-                    Text(absences.count, format: .number)
-                        .font(.title.weight(.bold))
-                        .monospacedDigit()
-                    Text(L("in diesem Schuljahr"))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                if open > 0 {
-                    Label(L("\(open) nicht entschuldigt"), systemImage: "exclamationmark.circle")
-                        .font(.subheadline)
-                        .foregroundStyle(.red)
-                }
-                NavigationLink(L("Alle")) { AbsencesView() }
-                    .font(.subheadline.weight(.semibold))
-            }
-        }
-    }
-}
