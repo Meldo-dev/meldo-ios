@@ -1,0 +1,167 @@
+# XcodeGen spec. The .xcodeproj is generated on macOS (`xcodegen generate`) and not committed,
+# so the project can be edited from Windows without merge-hostile pbxproj files.
+name: MeldePlanner
+
+options:
+  bundleIdPrefix: app.meldeplanner
+  deploymentTarget:
+    iOS: "26.0"
+  createIntermediateGroups: true
+  developmentLanguage: de
+
+settings:
+  base:
+    MARKETING_VERSION: "0.9.0"
+    CURRENT_PROJECT_VERSION: "1"
+    # Set MELDE_TEAM_ID in the environment for device/TestFlight builds.
+    DEVELOPMENT_TEAM: ${MELDE_TEAM_ID}
+    SWIFT_VERSION: "6.0"
+    SWIFT_APPROACHABLE_CONCURRENCY: YES
+    SWIFT_STRICT_CONCURRENCY: complete
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+    LOCALIZATION_PREFERS_STRING_CATALOGS: YES
+    CODE_SIGN_STYLE: Automatic
+
+packages:
+  MeldeCore:
+    path: MeldeCore
+
+targets:
+  MeldePlanner:
+    type: application
+    platform: iOS
+    # Defines the OAuth client ID settings and pulls in the gitignored Config/Secrets.xcconfig.
+    configFiles:
+      Debug: Config/Meldo.xcconfig
+      Release: Config/Meldo.xcconfig
+    sources:
+      - path: MeldePlanner
+      # Shared with the widget extension: models, store, engine, intents.
+      - path: Shared
+      # The string catalog both apps share lives in meldo-core (git submodule).
+      - path: core/l10n/Localizable.xcstrings
+    dependencies:
+      - package: MeldeCore
+      - target: MeldeWidgets
+    entitlements:
+      path: MeldePlanner/MeldePlanner.entitlements
+      properties:
+        # App Groups are available to free Apple IDs (Apple capability table, checked 2026-10-21).
+        com.apple.security.application-groups:
+          - group.app.meldeplanner.ios
+    info:
+      path: MeldePlanner/Info.plist
+      properties:
+        # Without these XcodeGen writes 1.0 and the app shows that instead of MARKETING_VERSION.
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        # OAuth client IDs from Config/Secrets.xcconfig (gitignored) or CI secrets; never in the repo.
+        MeldoGoogleClientID: $(MELDO_GOOGLE_CLIENT_ID)
+        MeldoTeamsClientID: $(MELDO_TEAMS_CLIENT_ID)
+        # Encryption only through Apple's CryptoKit/CommonCrypto and HTTPS (exempt), so App Store
+        # Connect skips the export compliance question on every upload.
+        ITSAppUsesNonExemptEncryption: false
+        CFBundleURLTypes:
+          - CFBundleURLName: app.meldeplanner.ios
+            CFBundleURLSchemes: [meldeplanner]
+        # AltStore rewrites this to the App Group names it registered for the user's team.
+        ALTAppGroups: [group.app.meldeplanner.ios]
+        # WebUntis updates in the background (Background App Refresh).
+        UIBackgroundModes: [fetch]
+        BGTaskSchedulerPermittedIdentifiers: [app.meldeplanner.ios.refresh]
+        # Prüfungen (Documents/Prüfungen) appear in the Files app.
+        UIFileSharingEnabled: true
+        LSSupportsOpeningDocumentsInPlace: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.meldeplanner.ios
+        TARGETED_DEVICE_FAMILY: "1,2"
+        SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Meldo
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_NSSupportsLiveActivities: YES
+        INFOPLIST_KEY_NSCameraUsageDescription: "Meldo nutzt die Kamera, um Klassenarbeiten und Arbeitsblätter als PDF zu scannen. Die Scans werden auf deinem Gerät gespeichert und nur bei eingeschaltetem Backup in Google Drive verschlüsselt gesichert."
+        INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: UIInterfaceOrientationPortrait
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES: "AppIcon-Orange AppIcon-Night"
+        ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS: YES
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        SWIFT_EMIT_LOC_STRINGS: YES
+
+  MeldeWidgets:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: MeldeWidgets
+      - path: Shared
+      - path: core/l10n/Localizable.xcstrings
+    dependencies:
+      - package: MeldeCore
+    entitlements:
+      path: MeldeWidgets/MeldeWidgets.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.app.meldeplanner.ios
+    info:
+      path: MeldeWidgets/Info.plist
+      properties:
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+        ALTAppGroups: [group.app.meldeplanner.ios]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.meldeplanner.ios.widgets
+        TARGETED_DEVICE_FAMILY: "1,2"
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Meldo
+        SWIFT_EMIT_LOC_STRINGS: YES
+
+  MeldePlannerTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: MeldePlannerTests
+    dependencies:
+      - target: MeldePlanner
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.meldeplanner.ios.tests
+        GENERATE_INFOPLIST_FILE: YES
+        SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
+
+  MeldePlannerUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: MeldePlannerUITests
+    dependencies:
+      - target: MeldePlanner
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.meldeplanner.ios.uitests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: MeldePlanner
+        # XCUITest APIs are main-actor bound; Swift 5 mode keeps the tests simple.
+        SWIFT_VERSION: "5.0"
+        SWIFT_STRICT_CONCURRENCY: minimal
+
+schemes:
+  MeldePlanner:
+    build:
+      targets:
+        MeldePlanner: all
+        MeldeWidgets: all
+    test:
+      targets:
+        - MeldePlannerTests
+        - MeldePlannerUITests
+      gatherCoverageData: true
+    run:
+      config: Debug
+    archive:
+      config: Release

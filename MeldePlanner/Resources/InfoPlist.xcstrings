@@ -1,0 +1,23 @@
+{
+  "sourceLanguage": "de",
+  "strings": {
+    "NSCameraUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meldo nutzt die Kamera, um Klassenarbeiten und Arbeitsblätter als PDF zu scannen. Die Scans werden auf deinem Gerät gespeichert und nur bei eingeschaltetem Backup in Google Drive verschlüsselt gesichert."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meldo uses the camera to scan tests and worksheets as PDFs. Scans are saved on your device and only backed up, encrypted, when Google Drive backup is on."
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

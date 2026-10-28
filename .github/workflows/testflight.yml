@@ -1,0 +1,91 @@
+# Manual TestFlight upload. Needs these repository secrets:
+#   APPLE_TEAM_ID              10-character Apple Developer team id
+#   ASC_KEY_ID                 App Store Connect API key id
+#   ASC_ISSUER_ID              App Store Connect issuer id
+#   ASC_PRIVATE_KEY_BASE64     base64 of the AuthKey_XXXX.p8 file (Admin role, for cloud signing)
+name: TestFlight
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  upload:
+    # Only reviewed code is signed and sent to testers.
+    if: github.ref == 'refs/heads/main'
+    runs-on: macos-26
+    timeout-minutes: 60
+    environment: testflight
+    env:
+      MELDE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          submodules: recursive
+      - run: sudo xcode-select -s /Applications/Xcode_26.6.app
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
+        with:
+          toolchain: stable
+          targets: aarch64-apple-ios, aarch64-apple-ios-sim, x86_64-apple-ios
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2
+        with:
+          workspaces: core
+      - run: bash scripts/build-rust-ios.sh
+      - run: brew install xcodegen
+      # OAuth client IDs are not in the repo; empty secrets build an app without Drive/Teams.
+      - name: OAuth client IDs
+        env:
+          GOOGLE_ID: ${{ secrets.MELDO_GOOGLE_CLIENT_ID_IOS }}
+          TEAMS_ID: ${{ secrets.MELDO_TEAMS_CLIENT_ID }}
+        run: printf 'MELDO_GOOGLE_CLIENT_ID = %s\nMELDO_TEAMS_CLIENT_ID = %s\n' "$GOOGLE_ID" "$TEAMS_ID" > Config/Secrets.xcconfig
+      - run: xcodegen generate
+
+      # Secrets reach the scripts as environment variables, never pasted into the script text.
+      - name: Write App Store Connect key
+        env:
+          ASC_PRIVATE_KEY_BASE64: ${{ secrets.ASC_PRIVATE_KEY_BASE64 }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/keys"
+          printf '%s' "$ASC_PRIVATE_KEY_BASE64" | base64 --decode > "$RUNNER_TEMP/keys/AuthKey.p8"
+
+      - name: Archive (cloud-managed signing)
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          xcodebuild archive -project MeldePlanner.xcodeproj -scheme MeldePlanner \
+            -destination "generic/platform=iOS" -archivePath "$RUNNER_TEMP/MeldePlanner.xcarchive" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$RUNNER_TEMP/keys/AuthKey.p8" \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
+            CURRENT_PROJECT_VERSION=${{ github.run_number }}
+
+      - name: Export and upload to TestFlight
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          cat > "$RUNNER_TEMP/ExportOptions.plist" <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>destination</key><string>upload</string>
+            <key>teamID</key><string>${MELDE_TEAM_ID}</string>
+            <key>signingStyle</key><string>automatic</string>
+          </dict></plist>
+          EOF
+          xcodebuild -exportArchive -archivePath "$RUNNER_TEMP/MeldePlanner.xcarchive" \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
+            -exportPath "$RUNNER_TEMP/export" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$RUNNER_TEMP/keys/AuthKey.p8" \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID"
+
+      - name: Remove key
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/keys"

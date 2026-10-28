@@ -1,0 +1,90 @@
+{
+  "outDir": "store-mockups/de",
+  "statusDate": "Fr. 23. Okt.",
+  "shots": [
+    {
+      "device": "iphone",
+      "image": "store-mockups/raw/de/iphone-1-start.png",
+      "out": "iphone-01-start.png",
+      "headline": "Melden mit *einem Tipp.*",
+      "sub": "Meldo zählt mit, wie oft du dich meldest. Bewerten tut deine Lehrkraft."
+    },
+    {
+      "device": "iphone",
+      "image": "store-mockups/raw/de/iphone-2-timetable.png",
+      "out": "iphone-02-stundenplan.png",
+      "headline": "Dein Stundenplan, *immer aktuell.*",
+      "sub": "Vertretungen und Ausfälle siehst du sofort."
+    },
+    {
+      "device": "iphone",
+      "image": "store-mockups/raw/de/iphone-3-lesson.png",
+      "out": "iphone-03-stunde.png",
+      "headline": "Eine Stunde antippen, *alles sehen.*",
+      "sub": "Lehrkraft, Raum und gleich die Hausaufgabe dazu."
+    },
+    {
+      "device": "iphone",
+      "image": "store-mockups/raw/de/iphone-4-tasks.png",
+      "out": "iphone-04-aufgaben.png",
+      "headline": "Hausaufgaben *nie mehr vergessen.*",
+      "sub": "Mit Erinnerung, damit nichts liegen bleibt."
+    },
+    {
+      "device": "iphone",
+      "image": "store-mockups/raw/de/iphone-5-calendar.png",
+      "out": "iphone-05-kalender.png",
+      "headline": "Prüfungen *im Blick.*",
+      "sub": "Der ganze Monat mit Arbeiten, Aufgaben und Meldungen."
+    },
+    {
+      "device": "iphone",
+      "image": "store-mockups/raw/de/iphone-6-statistics.png",
+      "out": "iphone-06-statistik.png",
+      "headline": "Sieh, wie oft *du mitmachst.*",
+      "sub": "Pro Tag und pro Fach, mit Wochenziel und Serie."
+    },
+    {
+      "device": "ipad-landscape",
+      "image": "store-mockups/raw/de/ipad-1-start.png",
+      "out": "ipad-01-start.png",
+      "headline": "Dein Schultag. *Auf einen Blick.*",
+      "sub": "Stunden, Hausaufgaben und Meldungen auf einer Seite."
+    },
+    {
+      "device": "ipad-landscape",
+      "image": "store-mockups/raw/de/ipad-2-timetable.png",
+      "out": "ipad-02-stundenplan.png",
+      "headline": "Dein Stundenplan, *immer aktuell.*",
+      "sub": "Vertretungen und Ausfälle siehst du sofort."
+    },
+    {
+      "device": "ipad-landscape",
+      "image": "store-mockups/raw/de/ipad-3-lesson.png",
+      "out": "ipad-03-stunde.png",
+      "headline": "Eine Stunde antippen, *alles sehen.*",
+      "sub": "Lehrkraft, Raum und gleich die Hausaufgabe dazu."
+    },
+    {
+      "device": "ipad-landscape",
+      "image": "store-mockups/raw/de/ipad-6-calendar.png",
+      "out": "ipad-04-kalender.png",
+      "headline": "Prüfungen *im Blick.*",
+      "sub": "Der ganze Monat mit Arbeiten, Aufgaben und Meldungen."
+    },
+    {
+      "device": "ipad-landscape",
+      "image": "store-mockups/raw/de/ipad-7-statistics.png",
+      "out": "ipad-05-statistik.png",
+      "headline": "Sieh, wie oft *du mitmachst.*",
+      "sub": "Pro Tag und pro Fach, mit Wochenziel und Serie."
+    },
+    {
+      "device": "ipad-landscape",
+      "image": "store-mockups/raw/de/ipad-4-tasks.png",
+      "out": "ipad-06-aufgaben.png",
+      "headline": "Hausaufgaben *nie mehr vergessen.*",
+      "sub": "Mit Erinnerung, damit nichts liegen bleibt."
+    }
+  ]
+}
