@@ -159,7 +159,7 @@ struct DashboardCardsView: View {
             Section {
                 ForEach(layout, id: \.kind) { slot in
                     HStack {
-                        Label(title(slot.kind), systemImage: symbol(slot.kind))
+                        Label(title(slot.kind), symbol: symbol(slot.kind))
                         Spacer()
                         Picker(L("Größe"), selection: Binding(
                             get: { slot.size },
@@ -195,7 +195,7 @@ struct DashboardCardsView: View {
                         Button {
                             save(layout + [CardSlot(kind: kind, size: .medium)])
                         } label: {
-                            Label(title(kind), systemImage: symbol(kind))
+                            Label(title(kind), symbol: symbol(kind))
                         }
                     }
                 }
@@ -285,7 +285,7 @@ struct BarSettingsView: View {
             Section {
                 Picker(L("Beim Öffnen"), selection: Binding(get: { startTab }, set: { model.setStartTab($0) })) {
                     ForEach(opening) { place in
-                        Label(place.title(), systemImage: place.symbol).tag(place.id)
+                        Label(place.title(), symbol: place.symbol).tag(place.id)
                     }
                 }
             } header: {
@@ -311,7 +311,7 @@ struct BarSettingsView: View {
             model.setBarTabs(next)
         })) {
             ForEach(features.barChoices) { place in
-                Label(place.title(), systemImage: place.symbol).tag(place.id)
+                Label(place.title(), symbol: place.symbol).tag(place.id)
             }
         }
     }

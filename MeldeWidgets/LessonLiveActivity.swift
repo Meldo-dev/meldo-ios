@@ -38,19 +38,19 @@ struct LessonLiveActivity: Widget {
                         Spacer()
                         if context.attributes.isPreview {
                             // The preview from Status must not record real Meldungen.
-                            Label(L("Vorschau – nichts gespeichert."), systemImage: "hand.raised.fill")
+                            Label(L("Vorschau – nichts gespeichert."), image: "meldo.hand.raised")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         } else {
                             Button(intent: LogParticipationIntent()) {
-                                Label(L("Melden"), systemImage: "hand.raised.fill")
+                                Label(L("Melden"), image: "meldo.hand.raised")
                             }
                             .tint(Color.meldoOrange)
                         }
                     }
                 }
             } compactLeading: {
-                Image(systemName: "hand.raised.fill").foregroundStyle(color)
+                Image("meldo.hand.raised").foregroundStyle(color)
             } compactTrailing: {
                 Text(context.state.count, format: .number).monospacedDigit()
             } minimal: {
@@ -87,7 +87,7 @@ private struct LessonActivityView: View {
             Spacer(minLength: 0)
             if context.attributes.isPreview {
                 // Same look, but not a button: the preview from Status must not record real Meldungen.
-                Image(systemName: "hand.raised.fill")
+                Image("meldo.hand.raised")
                     .font(.title2)
                     .foregroundStyle(.white)
                     .frame(width: 52, height: 52)
@@ -95,7 +95,7 @@ private struct LessonActivityView: View {
                     .accessibilityLabel(L("Vorschau – nichts gespeichert."))
             } else {
                 Button(intent: LogParticipationIntent()) {
-                    Image(systemName: "hand.raised.fill")
+                    Image("meldo.hand.raised")
                         .font(.title2)
                         .frame(width: 52, height: 52)
                 }

@@ -96,7 +96,7 @@ struct MeldenButton: View {
 
     private var buttonLabel: some View {
         HStack(spacing: DS.spacingS) {
-            Label(label, systemImage: lastEntry == nil ? "hand.raised.fill" : "checkmark")
+            Label(label, symbol: lastEntry == nil ? "meldo.hand.raised" : "checkmark")
                 .contentTransition(.symbolEffect(.replace))
             // This lesson's count inside the button: a corner badge read like unread notifications.
             let count = lessonCount

@@ -328,7 +328,7 @@ struct WeekParticipationCard: View {
         let summary = model.weekSummary(containing: now)
         let total = Int(summary?.total ?? 0)
         let goal = model.preferences.weeklyGoal
-        Card(title: size == .small ? L("Meldungen") : L("Meldungen diese Woche"), systemImage: "hand.raised") {
+        Card(title: size == .small ? L("Meldungen") : L("Meldungen diese Woche"), systemImage: "meldo.hand.raised") {
             HStack(spacing: DS.spacingXL) {
                 ZStack {
                     ProgressRing(progress: goal.map { Double(total) / Double(max($0, 1)) } ?? 0)

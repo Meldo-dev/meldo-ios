@@ -41,7 +41,7 @@ public struct MoreView: View {
     private func rows(_ list: [MeldoFeature]) -> some View {
         ForEach(list) { feature in
             NavigationLink { feature.page() } label: {
-                let label = Label((feature.moreTitle ?? feature.title)(), systemImage: feature.symbol)
+                let label = Label((feature.moreTitle ?? feature.title)(), symbol: feature.symbol)
                 if let status = feature.statusLabel {
                     LabeledContent { status(model) } label: { label }
                 } else {

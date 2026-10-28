@@ -88,14 +88,14 @@ struct StatsWidgetView: View {
                     .multilineTextAlignment(.center)
             } else if family == .accessoryCircular {
                 Gauge(value: Double(min(entry.total, entry.goal ?? max(entry.total, 1))), in: 0...Double(max(entry.goal ?? max(entry.total, 1), 1))) {
-                    Image(systemName: "hand.raised.fill")
+                    Image("meldo.hand.raised")
                 } currentValueLabel: {
                     Text(entry.total, format: .number)
                 }
                 .gaugeStyle(.accessoryCircular)
             } else if family == .accessoryRectangular {
                 VStack(alignment: .leading, spacing: 1) {
-                    Label(L("Meldungen"), systemImage: "hand.raised.fill")
+                    Label(L("Meldungen"), image: "meldo.hand.raised")
                         .font(.headline)
                         .widgetAccentable()
                     if let goal = entry.goal {
@@ -123,7 +123,7 @@ struct StatsWidgetView: View {
 
     private var summary: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Label(L("Meldungen"), systemImage: "hand.raised.fill")
+            Label(L("Meldungen"), image: "meldo.hand.raised")
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(entry.tint)
                 .widgetAccentable()

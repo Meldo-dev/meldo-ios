@@ -18,7 +18,7 @@ public struct Card<Content: View>: View {
     public var body: some View {
         VStack(alignment: .leading, spacing: DS.spacingM) {
             if let title {
-                Label(title, systemImage: systemImage ?? "circle")
+                Label(title, symbol: systemImage ?? "circle")
                     .labelStyle(CardHeaderLabelStyle(showsIcon: systemImage != nil))
             }
             content

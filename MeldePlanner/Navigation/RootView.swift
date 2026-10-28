@@ -124,7 +124,7 @@ struct RootView: View {
     }
 
     private func label(_ feature: MeldoFeature) -> some View {
-        Label(feature.title(), systemImage: feature.symbol)
+        Label(feature.title(), symbol: feature.symbol)
     }
 
     @TabContentBuilder<String>

@@ -262,7 +262,7 @@ where Kind: Codable & Hashable & Sendable & CaseIterable & RawRepresentable, Kin
                             feedback += 1
                             save(slots + [CardSlot(kind: kind, size: .medium)])
                         } label: {
-                            Label(title(kind), systemImage: symbol(kind))
+                            Label(title(kind), symbol: symbol(kind))
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .padding(DS.spacingM)
                         }

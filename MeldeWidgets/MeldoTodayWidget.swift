@@ -138,7 +138,7 @@ struct TodayWidgetView: View {
                 switch family {
                 case .accessoryCircular: CircularView(entry: entry)
                 case .accessoryRectangular: RectangularView(entry: entry)
-                case .accessoryInline: Label(L("\(entry.weekTotal) diese Woche"), systemImage: "hand.raised.fill")
+                case .accessoryInline: Label(L("\(entry.weekTotal) diese Woche"), image: "meldo.hand.raised")
                 case .systemMedium: MediumView(entry: entry)
                 default: SmallView(entry: entry)
                 }
@@ -151,7 +151,7 @@ struct TodayWidgetView: View {
 private struct UnavailableView: View {
     var body: some View {
         VStack(spacing: 6) {
-            Image(systemName: "hand.raised.fill").foregroundStyle(Color.meldoOrange)
+            Image("meldo.hand.raised").foregroundStyle(Color.meldoOrange)
             Text(L("Öffne Meldo einmal, um das Widget zu verbinden."))
                 .font(.caption)
                 .multilineTextAlignment(.center)
@@ -172,7 +172,7 @@ private struct MeldenButton: View {
             // accent-tinted label instead.
             let accented = renderingMode == .accented
             Button(intent: LogParticipationIntent()) {
-                Label(L("Melden"), systemImage: "hand.raised.fill")
+                Label(L("Melden"), image: "meldo.hand.raised")
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(accented ? AnyShapeStyle(.primary) : AnyShapeStyle(.white))
                     .widgetAccentable()
@@ -186,7 +186,7 @@ private struct MeldenButton: View {
             .buttonStyle(.plain)
         } else {
             Link(destination: DeepLink.melden) {
-                Label(L("Melden"), systemImage: "hand.raised")
+                Label(L("Melden"), image: "meldo.hand.raised")
                     .font(.subheadline.weight(.semibold))
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 6)
@@ -235,7 +235,7 @@ private struct WeekLine: View {
 
     var body: some View {
         HStack(spacing: 4) {
-            Image(systemName: "hand.raised.fill").foregroundStyle(Color.meldoOrange)
+            Image("meldo.hand.raised").foregroundStyle(Color.meldoOrange)
             if let goal = entry.goal {
                 Text(L("\(entry.weekTotal) von \(goal)"))
             } else {
@@ -337,7 +337,7 @@ private struct CircularView: View {
     var body: some View {
         if let goal = entry.goal {
             Gauge(value: Double(min(entry.weekTotal, goal)), in: 0...Double(max(goal, 1))) {
-                Image(systemName: "hand.raised.fill")
+                Image("meldo.hand.raised")
             } currentValueLabel: {
                 Text(entry.weekTotal, format: .number)
             }
@@ -346,7 +346,7 @@ private struct CircularView: View {
             ZStack {
                 AccessoryWidgetBackground()
                 VStack(spacing: 0) {
-                    Image(systemName: "hand.raised.fill").font(.caption)
+                    Image("meldo.hand.raised").font(.caption)
                     Text(entry.weekTotal, format: .number).font(.headline)
                 }
             }

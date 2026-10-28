@@ -94,7 +94,7 @@ struct CalendarView: View {
         }
         let entries = model.entries(on: date)
         if !entries.isEmpty {
-            Card(title: L("Meldungen"), systemImage: "hand.raised") {
+            Card(title: L("Meldungen"), systemImage: "meldo.hand.raised") {
                 // One row per subject with its count; long lists of single entries are hard to read.
                 let groups = Dictionary(grouping: entries) { $0.subjectID }
                     .map { MeldungGroup(subjectID: $0.key, entries: $0.value.sorted { $0.recordedAt < $1.recordedAt }) }

@@ -9,7 +9,7 @@ struct MeldenControl: ControlWidget {
     var body: some ControlWidgetConfiguration {
         StaticControlConfiguration(kind: Surfaces.controlKind) {
             ControlWidgetButton(action: LogParticipationIntent()) {
-                Label(L("Melden"), systemImage: "hand.raised.fill")
+                Label(L("Melden"), image: "meldo.hand.raised")
             }
         }
         .displayName("Melden")

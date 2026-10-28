@@ -129,7 +129,7 @@ private struct MeldenPage: View {
 
     var body: some View {
         OnboardingPage {
-            Image(systemName: "hand.raised.fill")
+            Image("meldo.hand.raised")
                 .font(.system(size: 44, weight: .semibold))
                 .foregroundStyle(.tint)
                 .symbolEffect(.wiggle, value: wave)
@@ -164,7 +164,7 @@ private struct FeaturePage: View {
 
     var body: some View {
         OnboardingPage {
-            Image(systemName: symbol)
+            Image(symbol: symbol)
                 .font(.system(size: 36, weight: .semibold))
                 .foregroundStyle(.tint)
                 .frame(maxWidth: .infinity)
@@ -280,7 +280,7 @@ private struct FeaturePage: View {
             rows: [
                 ("iphone", L("Auf deinem Gerät"), L("Alles, was du einträgst, liegt auf deinem iPhone oder iPad.")),
                 ("key", L("Passwörter im Schlüsselbund"), L("Deine Anmeldungen für WebUntis, Teams und Google bleiben im Schlüsselbund dieses Geräts und gehen nie an Meldo.")),
-                ("hand.raised", L("Du entscheidest"), L("Daten verlassen dein Gerät nur, wenn du selbst eine Verbindung einschaltest. Mehr dazu steht in der Datenschutzerklärung unter Über Meldo.")),
+                ("meldo.hand.raised", L("Du entscheidest"), L("Daten verlassen dein Gerät nur, wenn du selbst eine Verbindung einschaltest. Mehr dazu steht in der Datenschutzerklärung unter Über Meldo.")),
             ]
         ),
     ] }
@@ -367,7 +367,7 @@ private struct OnboardingRow: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: DS.spacingM) {
-            Image(systemName: symbol)
+            Image(symbol: symbol)
                 .font(.title2)
                 .foregroundStyle(.tint)
                 .frame(width: 36)
