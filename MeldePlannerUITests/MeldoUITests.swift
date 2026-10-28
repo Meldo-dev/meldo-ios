@@ -443,7 +443,8 @@ final class MeldoUITests: XCTestCase {
             found = notification.waitForExistence(timeout: 5)
             if !found { XCUIDevice.shared.press(.home); RunLoop.current.run(until: Date().addingTimeInterval(1)) }
         }
-        XCTAssertTrue(found, "check-in notification in Notification Center")
+        // Without it the screen may show the home screen or other apps' notifications: no capture.
+        guard found else { return XCTFail("check-in notification in Notification Center") }
         // A single notification can sit collapsed at the bottom ("1 Notification"), where a
         // long-press opens it instead; a short drag up lists it above the Live Activity's edge.
         RunLoop.current.run(until: Date().addingTimeInterval(2))
