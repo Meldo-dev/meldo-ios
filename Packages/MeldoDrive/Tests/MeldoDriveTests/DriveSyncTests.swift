@@ -3,7 +3,7 @@ import Foundation
 import MeldoKit
 import MeldoState
 import Testing
-@testable import MeldePlanner
+@testable import MeldoDrive
 
 /// Stand-in for the Google Drive app-data folder, kept in memory (tests only).
 actor MemoryDrive: DriveFiles {

@@ -42,7 +42,7 @@ nonisolated struct GoogleClient: Sendable {
     /// PKCE verifier, the `state` to expect back and the sign-in URL to open in the
     /// web authentication session.
     static func authorization() -> (verifier: String, state: String, url: URL)? {
-        guard GoogleConfig.isConfigured, let (verifier, challenge, state) = TeamsClient.pkce() else { return nil }
+        guard GoogleConfig.isConfigured, let (verifier, challenge, state) = PKCE.make() else { return nil }
         var components = URLComponents(string: "https://accounts.google.com/o/oauth2/v2/auth")
         components?.queryItems = [
             URLQueryItem(name: "client_id", value: GoogleConfig.clientID),

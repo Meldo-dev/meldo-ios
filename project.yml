@@ -55,6 +55,12 @@ packages:
     path: Packages/MeldoOnboarding
   MeldoSettings:
     path: Packages/MeldoSettings
+  MeldoTeams:
+    path: Packages/MeldoTeams
+  MeldoDrive:
+    path: Packages/MeldoDrive
+  MeldoUntis:
+    path: Packages/MeldoUntis
 
 targets:
   MeldePlanner:
@@ -87,6 +93,9 @@ targets:
       - package: MeldoDashboard
       - package: MeldoOnboarding
       - package: MeldoSettings
+      - package: MeldoTeams
+      - package: MeldoDrive
+      - package: MeldoUntis
       - target: MeldeWidgets
     entitlements:
       path: MeldePlanner/MeldePlanner.entitlements
@@ -167,19 +176,6 @@ targets:
         INFOPLIST_KEY_CFBundleDisplayName: Meldo
         SWIFT_EMIT_LOC_STRINGS: YES
 
-  MeldePlannerTests:
-    type: bundle.unit-test
-    platform: iOS
-    sources:
-      - path: MeldePlannerTests
-    dependencies:
-      - target: MeldePlanner
-    settings:
-      base:
-        PRODUCT_BUNDLE_IDENTIFIER: app.meldeplanner.ios.tests
-        GENERATE_INFOPLIST_FILE: YES
-        SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
-
   MeldePlannerUITests:
     type: bundle.ui-testing
     platform: iOS
@@ -204,11 +200,13 @@ schemes:
         MeldeWidgets: all
     test:
       targets:
-        - MeldePlannerTests
         - package: MeldoKit/MeldoKitTests
         - package: MeldoState/MeldoStateTests
         - package: MeldoGrades/MeldoGradesTests
         - package: MeldoExams/MeldoExamsTests
+        - package: MeldoTeams/MeldoTeamsTests
+        - package: MeldoDrive/MeldoDriveTests
+        - package: MeldoUntis/MeldoUntisTests
         - MeldePlannerUITests
       gatherCoverageData: true
     run:

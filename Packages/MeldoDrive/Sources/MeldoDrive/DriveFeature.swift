@@ -5,7 +5,7 @@ import SwiftUI
 
 extension MeldoFeature {
     /// Google Drive: encrypted sync and backup.
-    static var drive: MeldoFeature {
+    public static var drive: MeldoFeature {
         var feature = MeldoFeature(id: "drive", title: { L("Google Drive") }, symbol: "externaldrive", placement: .connections) {
             GoogleDriveView()
         }

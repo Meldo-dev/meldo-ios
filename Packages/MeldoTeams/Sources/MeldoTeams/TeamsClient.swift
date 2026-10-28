@@ -51,7 +51,7 @@ nonisolated struct TeamsClient: Sendable {
     /// PKCE verifier, the `state` to expect back and the sign-in URL to open in the
     /// web authentication session.
     static func authorization() -> (verifier: String, state: String, url: URL)? {
-        guard let (verifier, challenge, state) = pkce() else { return nil }
+        guard let (verifier, challenge, state) = PKCE.make() else { return nil }
         var components = URLComponents(string: "\(authority)/authorize")
         components?.queryItems = [
             URLQueryItem(name: "client_id", value: TeamsConfig.clientID),
@@ -164,24 +164,6 @@ nonisolated struct TeamsClient: Sendable {
         } catch {
             throw .denied(String(decoding: data.prefix(200), as: UTF8.self))
         }
-    }
-
-    /// A PKCE verifier, its S256 challenge and a `state`, all random (Teams and Google sign-in).
-    static func pkce() -> (verifier: String, challenge: String, state: String)? {
-        func random() -> String? {
-            var bytes = [UInt8](repeating: 0, count: 32)
-            guard SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes) == errSecSuccess else { return nil }
-            return base64URL(Data(bytes))
-        }
-        guard let verifier = random(), let state = random() else { return nil }
-        return (verifier, base64URL(Data(SHA256.hash(data: Data(verifier.utf8)))), state)
-    }
-
-    static func base64URL(_ data: Data) -> String {
-        data.base64EncodedString()
-            .replacingOccurrences(of: "+", with: "-")
-            .replacingOccurrences(of: "/", with: "_")
-            .replacingOccurrences(of: "=", with: "")
     }
 
     /// Assignment instructions arrive as HTML.

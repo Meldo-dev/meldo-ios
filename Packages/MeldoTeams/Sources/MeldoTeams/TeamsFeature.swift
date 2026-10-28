@@ -5,7 +5,7 @@ import SwiftUI
 
 extension MeldoFeature {
     /// Microsoft Teams: assignments become homework. Listed once switched on in Einstellungen.
-    static var teams: MeldoFeature {
+    public static var teams: MeldoFeature {
         var feature = MeldoFeature(id: "teams", title: { L("Microsoft Teams") }, symbol: "person.3", placement: .connections) {
             TeamsConnectView()
         }
