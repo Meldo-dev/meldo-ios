@@ -12,6 +12,11 @@ extension AppModel {
     static func makeForLaunch() -> AppModel {
         #if DEBUG
         let args = ProcessInfo.processInfo.arguments
+        if args.contains("-uitest-seed-store") {
+            let model = UITestLaunch(arguments: args).makeSeededStoreModel()
+            MeldoFeatures.app.install(in: model)
+            return model
+        }
         if args.contains("-uitest") {
             let model = UITestLaunch(arguments: args).makeModel()
             MeldoFeatures.app.install(in: model)
@@ -30,6 +35,8 @@ extension AppModel {
 /// `-uitest-untis` (recorded WebUntis answers instead of own lessons),
 /// `-uitest-language de|tr|en`, `-uitest-theme <AppTheme>`,
 /// `-uitest-onboarding` (show the first-run tour; hidden otherwise so other tests start on Start).
+/// `-uitest-seed-store` (without `-uitest`) replaces the real store with the sample week so
+/// widgets can show it: for widget screenshots on a simulator only, it erases the data there.
 private struct UITestLaunch {
     let arguments: [String]
 
@@ -44,6 +51,35 @@ private struct UITestLaunch {
         let parts = raw.split(whereSeparator: { "-T:".contains($0) }).compactMap { Int($0) }
         guard parts.count == 5 else { return Date() }
         return calendar.date(from: DateComponents(year: parts[0], month: parts[1], day: parts[2], hour: parts[3], minute: parts[4])) ?? Date()
+    }
+
+    /// The sample week in the real store, around the real clock (widget timelines use it):
+    /// the timetable is moved so a lesson runs right now on today's weekday.
+    func makeSeededStoreModel() -> AppModel {
+        let store = try? LocalStore.standard()
+        try? store?.save(AppData())
+        let model = AppModel(store: store)
+        // Every saved change re-plans the Live Activity in its own task; off while seeding,
+        // so those tasks only end old activities and one is started at the end.
+        model.setLiveActivities(false)
+        if let language = value("-uitest-language").flatMap(AppLanguage.init(rawValue:)) {
+            model.setLanguage(language)
+        }
+        let calendar = Calendar.current
+        let now = Date()
+        let today = (calendar.component(.weekday, from: now) + 5) % 7 // Monday = 0
+        let minute = calendar.component(.hour, from: now) * 60 + calendar.component(.minute, from: now) / 5 * 5
+        // The sample is laid out for Friday 9:00 (8:50 lesson running); lessons pushed past midnight are left out.
+        let shift = (weekdays: today - 4, minutes: max(-8 * 60, min(minute - 9 * 60, 24 * 60 - 1 - (9 * 60 + 35))))
+        SampleData.seed(model, now: now, timetableShift: shift)
+        // Two Meldungen in the running lesson, so the widgets show a count for it.
+        for minutesAgo in [8.0, 3.0] { _ = model.recordParticipation(at: now.addingTimeInterval(-minutesAgo * 60)) }
+        model.finishOnboarding()
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(3))
+            model.setLiveActivities(true)
+        }
+        return model
     }
 
     func makeModel() -> AppModel {
@@ -72,7 +108,7 @@ private struct UITestLaunch {
 /// A realistic school week for screenshots: five subjects, a full timetable,
 /// three weeks of Meldungen, homework and a weekly goal.
 private enum SampleData {
-    static func seed(_ model: AppModel, now: Date) {
+    static func seed(_ model: AppModel, now: Date, timetableShift: (weekdays: Int, minutes: Int) = (0, 0)) {
         let calendar = Calendar.current
         let subjects: [Subject] = [
             Subject(name: "Mathematik", shortName: "M", color: .blue, symbolName: "function", teacher: "Fr. Weber"),
@@ -92,7 +128,9 @@ private enum SampleData {
             (4, 8 * 60, 3), (4, 8 * 60 + 50, 4), (4, 9 * 60 + 50, 1),
         ]
         for (weekday, start, subject) in plan where subject < ids.count {
-            _ = model.save(Lesson(subjectID: ids[subject], weekday: weekday, startMinute: start, endMinute: start + 45, room: "A\(10 + subject)"))
+            let day = (weekday + timetableShift.weekdays + 7) % 7, start = start + timetableShift.minutes
+            guard start + 45 < 24 * 60 else { continue }
+            _ = model.save(Lesson(subjectID: ids[subject], weekday: day, startMinute: start, endMinute: start + 45, room: "A\(10 + subject)"))
         }
         // Meldungen over the last three weeks (none today, so the first tap is visible).
         let today = calendar.startOfDay(for: now)
