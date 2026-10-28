@@ -225,27 +225,14 @@ where Kind: Codable & Hashable & Sendable & CaseIterable & RawRepresentable, Kin
                     .padding(-6)
             }
             .overlay(alignment: .bottomTrailing) {
-                ResizeHandle(size: slot.size) { size in
-                    resize(slot.kind, to: size)
-                    feedback += 1
-                }
-                .padding(DS.spacingXS)
-            }
-            .overlay(alignment: .topTrailing) {
-                Menu {
-                    Picker(L("Größe"), selection: Binding(get: { slot.size }, set: { resize(slot.kind, to: $0) })) {
-                        ForEach(CardSize.allCases) { Text($0.title).tag($0) }
-                    }
-                    Button(L("Nach vorne"), systemImage: "arrow.up.left") { shift(slot.kind, by: -1) }
-                    Button(L("Nach hinten"), systemImage: "arrow.down.right") { shift(slot.kind, by: 1) }
-                } label: {
-                    Image(systemName: "ellipsis")
-                        .frame(width: 30, height: 30)
-                }
-                .buttonStyle(.glass)
-                .buttonBorderShape(.circle)
-                .accessibilityLabel(L("Größe und Position"))
-                .padding(DS.spacingS)
+                ResizeHandle(
+                    size: slot.size,
+                    onResize: { size in
+                        resize(slot.kind, to: size)
+                        feedback += 1
+                    },
+                    onShift: { shift(slot.kind, by: $0) }
+                )
             }
     }
 
@@ -258,21 +245,24 @@ where Kind: Codable & Hashable & Sendable & CaseIterable & RawRepresentable, Kin
                     .font(.headline)
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: DS.spacingS)], spacing: DS.spacingS) {
                     ForEach(hidden, id: \.self) { kind in
+                        // The whole tile is the button: a plain button only takes taps on its
+                        // drawn pixels, and an overlay on top of it swallowed taps on the plus.
                         Button {
                             feedback += 1
                             save(slots + [CardSlot(kind: kind, size: .medium)])
                         } label: {
-                            Label(title(kind), symbol: symbol(kind))
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(DS.spacingM)
+                            HStack(spacing: DS.spacingS) {
+                                Label(title(kind), symbol: symbol(kind))
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                Image(systemName: "plus.circle.fill")
+                                    .foregroundStyle(Color.accentColor)
+                                    .accessibilityHidden(true)
+                            }
+                            .padding(DS.spacingM)
+                            .background(Color(.secondarySystemGroupedBackground), in: .rect(cornerRadius: DS.rowRadius))
+                            .contentShape(.rect(cornerRadius: DS.rowRadius))
                         }
                         .buttonStyle(.plain)
-                        .background(Color(.secondarySystemGroupedBackground), in: .rect(cornerRadius: DS.rowRadius))
-                        .overlay(alignment: .trailing) {
-                            Image(systemName: "plus.circle.fill")
-                                .foregroundStyle(Color.accentColor)
-                                .padding(.trailing, DS.spacingM)
-                        }
                     }
                 }
             }
@@ -348,34 +338,44 @@ private struct GridDropDelegate: DropDelegate {
     }
 }
 
-/// Drag the corner to make a card bigger or smaller, one size step per ~70 points.
+/// The grey handle in a card's bottom corner. Drag it out or in to make the card bigger
+/// or smaller, like a widget on the Home Screen: the card snaps to the next size about
+/// every 60 points. A tap steps through the sizes.
 private struct ResizeHandle: View {
     let size: CardSize
     var onResize: (CardSize) -> Void
-    @State private var applied = 0
+    var onShift: (Int) -> Void
+    /// The size when the drag began; the drag distance picks a size relative to it.
+    @State private var start: CardSize?
+
+    private let all = CardSize.allCases
 
     var body: some View {
-        Image(systemName: "arrow.up.left.and.arrow.down.right")
-            .font(.footnote.weight(.bold))
-            .frame(width: 34, height: 34)
-            .glassEffect(.regular.interactive(), in: .circle)
-            .gesture(
-                DragGesture(minimumDistance: 4)
+        CornerArc(radius: DS.cardRadius - 6, inset: 6)
+            .stroke(Color(.systemGray), style: StrokeStyle(lineWidth: start == nil ? 5 : 6.5, lineCap: .round))
+            .frame(width: 44, height: 44)
+            .contentShape(.rect)
+            .animation(.spring(duration: 0.2), value: start)
+            .onTapGesture(perform: cycle)
+            // Global coordinates: the handle moves with the card while it resizes.
+            .highPriorityGesture(
+                DragGesture(minimumDistance: 2, coordinateSpace: .global)
                     .onChanged { value in
-                        let steps = Int(((value.translation.width + value.translation.height) / 2 / 70).rounded(.towardZero))
-                        guard steps != applied else { return }
-                        let all = CardSize.allCases
-                        let current = all.firstIndex(of: size) ?? 0
-                        let next = min(max(current + steps - applied, 0), all.count - 1)
-                        applied = steps
-                        if all[next] != size { onResize(all[next]) }
+                        let from = start ?? size
+                        if start == nil { start = size }
+                        let reach = (value.translation.width + value.translation.height) / 2
+                        let steps = Int((reach / 60).rounded(.towardZero))
+                        let index = min(max((all.firstIndex(of: from) ?? 0) + steps, 0), all.count - 1)
+                        if all[index] != size { onResize(all[index]) }
                     }
-                    .onEnded { _ in applied = 0 }
+                    .onEnded { _ in start = nil }
             )
+            .accessibilityElement()
             .accessibilityLabel(L("Größe ändern"))
             .accessibilityValue(size.title)
+            .accessibilityAddTraits(.isButton)
+            .accessibilityAction { cycle() }
             .accessibilityAdjustableAction { direction in
-                let all = CardSize.allCases
                 let current = all.firstIndex(of: size) ?? 0
                 switch direction {
                 case .increment: if current + 1 < all.count { onResize(all[current + 1]) }
@@ -383,6 +383,33 @@ private struct ResizeHandle: View {
                 @unknown default: break
                 }
             }
+            // Moving a card by dragging it isn't available to VoiceOver.
+            .accessibilityAction(named: L("Nach vorne")) { onShift(-1) }
+            .accessibilityAction(named: L("Nach hinten")) { onShift(1) }
+    }
+
+    private func cycle() {
+        let current = all.firstIndex(of: size) ?? 0
+        onResize(all[(current + 1) % all.count])
+    }
+}
+
+/// A rounded corner stroke that follows the card's bottom-trailing corner.
+private struct CornerArc: Shape {
+    var radius: CGFloat
+    var inset: CGFloat
+
+    func path(in rect: CGRect) -> Path {
+        let right = rect.maxX - inset
+        let bottom = rect.maxY - inset
+        let center = CGPoint(x: right - radius, y: bottom - radius)
+        let tail = radius * 0.45
+        var path = Path()
+        path.move(to: CGPoint(x: right, y: center.y - tail))
+        path.addLine(to: CGPoint(x: right, y: center.y))
+        path.addArc(center: center, radius: radius, startAngle: .degrees(0), endAngle: .degrees(90), clockwise: false)
+        path.addLine(to: CGPoint(x: center.x - tail, y: bottom))
+        return path
     }
 }
 
