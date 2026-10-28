@@ -7,6 +7,8 @@ import SwiftUI
 /// Meldo has no server of its own; every connection is to a service the student
 /// turns on (WebUntis, Microsoft Teams, Google Drive).
 struct PrivacyPolicyView: View {
+    @Environment(\.features) private var features
+
     /// Computed, so a language change shows at once.
     private static var sections: [(title: String, body: String)] { [
         (
@@ -59,9 +61,14 @@ struct PrivacyPolicyView: View {
         ),
     ] }
 
+    /// Sections about a connection that may be left out of the build, by their title.
+    private static func feature(of title: String) -> String? {
+        [L("WebUntis"): "untis", L("Microsoft Teams"): "teams", L("Backup in Google Drive"): "drive"][title]
+    }
+
     var body: some View {
         List {
-            ForEach(Self.sections, id: \.title) { section in
+            ForEach(Self.sections.filter { Self.feature(of: $0.title).map { features.feature($0) != nil } ?? true }, id: \.title) { section in
                 Section(section.title) {
                     Text(section.body)
                         .font(.subheadline)
