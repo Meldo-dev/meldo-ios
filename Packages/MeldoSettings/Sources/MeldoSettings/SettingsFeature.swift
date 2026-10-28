@@ -5,14 +5,14 @@ import SwiftUI
 
 extension MeldoFeature {
     /// Einstellungen.
-    static var settings: MeldoFeature {
+    public static var settings: MeldoFeature {
         MeldoFeature(id: "settings", title: { L("Einstellungen") }, symbol: "gearshape", placement: .app) {
             SettingsView()
         }
     }
 
     /// Status: widgets, notifications and the Live Activity checked on this device.
-    static var status: MeldoFeature {
+    public static var status: MeldoFeature {
         var feature = MeldoFeature(id: "status", title: { L("Status") }, symbol: "stethoscope", placement: .app) {
             StatusView()
         }
@@ -21,7 +21,7 @@ extension MeldoFeature {
     }
 
     /// Über Meldo: version, privacy policy.
-    static var about: MeldoFeature {
+    public static var about: MeldoFeature {
         MeldoFeature(id: "about", title: { L("Über Meldo") }, symbol: "info.circle", placement: .app) {
             AboutView()
         }

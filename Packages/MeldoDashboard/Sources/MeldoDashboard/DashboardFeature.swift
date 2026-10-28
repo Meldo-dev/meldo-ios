@@ -5,7 +5,7 @@ import SwiftUI
 
 extension MeldoFeature {
     /// Start: the cards the student arranges.
-    static var dashboard: MeldoFeature {
+    public static var dashboard: MeldoFeature {
         var feature = MeldoFeature(id: "home", title: { L("Start") }, symbol: "house", placement: .pinned) {
             DashboardView()
         }
