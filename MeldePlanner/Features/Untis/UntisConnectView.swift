@@ -1,4 +1,7 @@
 import MeldeCore
+import MeldoKit
+import MeldoState
+import MeldoUI
 import SwiftUI
 
 /// Connect WebUntis: find the school, sign in, import. Afterwards: status,

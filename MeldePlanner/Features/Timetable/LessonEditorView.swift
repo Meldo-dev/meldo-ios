@@ -1,4 +1,7 @@
 import MeldeCore
+import MeldoKit
+import MeldoState
+import MeldoUI
 import SwiftUI
 
 /// Create or edit a lesson. Overlaps are detected by the Rust core before saving.

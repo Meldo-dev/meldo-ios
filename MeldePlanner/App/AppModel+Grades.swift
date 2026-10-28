@@ -1,5 +1,8 @@
 import Foundation
 import MeldeCore
+import MeldoKit
+import MeldoState
+import MeldoUI
 
 /// Notenrechner: the student's own grades, averaged by the Rust core with the
 /// configured scale and weights. Estimates only; official grades come from

@@ -1,5 +1,8 @@
 import Charts
 import MeldeCore
+import MeldoKit
+import MeldoState
+import MeldoUI
 import SwiftUI
 
 /// The lesson running now or coming next, with a live countdown.

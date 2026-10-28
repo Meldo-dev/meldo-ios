@@ -1,3 +1,6 @@
+import MeldoKit
+import MeldoState
+import MeldoUI
 import SwiftUI
 
 /// Absences from the WebUntis class register, newest first, with a summary.
@@ -70,58 +73,5 @@ struct AbsencesView: View {
         }
         .frame(maxWidth: .infinity)
         .accessibilityElement(children: .combine)
-    }
-}
-
-struct AbsenceRow: View {
-    @Environment(AppModel.self) private var model
-    let absence: UntisAbsenceRecord
-    @State private var writingExcuse = false
-
-    var body: some View {
-        row
-            .contextMenu {
-                Button(L("Entschuldigung erstellen"), systemImage: "doc.text") { writingExcuse = true }
-            }
-            .sheet(isPresented: $writingExcuse) { ExcuseNoteView(absence: absence) }
-    }
-
-    private var row: some View {
-        HStack(alignment: .top, spacing: DS.spacingM) {
-            Image(systemName: absence.excused ? "checkmark.circle.fill" : "circle")
-                .foregroundStyle(absence.excused ? Color.green : Color.red)
-                .font(.title3)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(dates)
-                    .font(.subheadline.weight(.semibold))
-                if let late = model.lateMinutes(absence) {
-                    Text("\(Image(systemName: "clock.badge.exclamationmark")) \(L("Verspätung · \(late) Min."))")
-                        .font(.caption.weight(.medium))
-                        .foregroundStyle(.secondary)
-                }
-                Text(TimeText.range(absence.startMinute, absence.endMinute))
-                    .font(.caption)
-                    .monospacedDigit()
-                    .foregroundStyle(.secondary)
-                if !absence.reason.isEmpty {
-                    Text(absence.reason).font(.caption).foregroundStyle(.secondary)
-                }
-                if !absence.text.isEmpty {
-                    Text(absence.text).font(.caption).foregroundStyle(.secondary)
-                }
-                Text(absence.excused ? L("entschuldigt") : L("nicht entschuldigt"))
-                    .font(.caption.weight(.medium))
-                    .foregroundStyle(absence.excused ? Color.green : Color.red)
-            }
-        }
-        .accessibilityElement(children: .combine)
-    }
-
-    private var dates: String {
-        let style = Date.FormatStyle(locale: Localization.locale).weekday(.abbreviated).day().month(.abbreviated)
-        if Calendar.current.isDate(absence.firstDay, inSameDayAs: absence.lastDay) {
-            return absence.firstDay.formatted(style)
-        }
-        return "\(absence.firstDay.formatted(style))–\(absence.lastDay.formatted(style))"
     }
 }

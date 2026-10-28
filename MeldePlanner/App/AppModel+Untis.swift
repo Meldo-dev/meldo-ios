@@ -1,9 +1,48 @@
 import Foundation
+import MeldoState
+import MeldoUI
+import Observation
 import MeldeCore
+import MeldoKit
 
 /// WebUntis import: fetch this week and the next, let Rust derive
 /// subjects, weekly lessons and changes, then merge into the student's data.
+/// WebUntis update status on this device.
+@Observable
+final class UntisSession {
+    /// A WebUntis update is running; automatic updates don't start a second one.
+    var isRefreshing = false
+    /// After a failed automatic update, the next one waits until then (see refreshUntisIfStale).
+    @ObservationIgnored var retryAfter: Date?
+    @ObservationIgnored var failures = 0
+    /// Bumped by "WebUntis trennen". An import that started earlier stops writing,
+    /// so it can't bring back the connection or its secret.
+    @ObservationIgnored var generation = 0
+}
+
 extension AppModel {
+    var untisSession: UntisSession { moduleState(UntisSession.init) }
+    var isRefreshingUntis: Bool { get { untisSession.isRefreshing } set { untisSession.isRefreshing = newValue } }
+    var untisRetryAfter: Date? { get { untisSession.retryAfter } set { untisSession.retryAfter = newValue } }
+    var untisFailures: Int { get { untisSession.failures } set { untisSession.failures = newValue } }
+    var untisGeneration: Int { get { untisSession.generation } set { untisSession.generation = newValue } }
+
+    /// Keeps the web login out of backups, and forgets this device's secrets when the
+    /// connection was removed or switched on another device.
+    func installUntis() {
+        if hasReadableStore { UntisSilentLogin.keepWebLoginOutOfBackups() }
+        onMerge { [weak self] before in
+            guard let self, let untis = before.untis else { return }
+            if let now = data.untis {
+                // Another account or server now: the old account's secret goes (and imports still
+                // running for it stop, so they can't store it again), the new login stays.
+                if Self.keychainAccount(now) != Self.keychainAccount(untis) { forgetUntisSecrets(untis) }
+            } else {
+                forgetUntisSecrets(untis)
+            }
+        }
+    }
+
     struct UntisImportSummary: Equatable {
         var newSubjects = 0
         var lessons = 0

@@ -1,6 +1,9 @@
 import CommonCrypto
 import CryptoKit
 import Foundation
+import MeldoKit
+import MeldoState
+import MeldoUI
 
 /// One file in the app's hidden Google Drive folder.
 nonisolated struct DriveFile: Sendable, Equatable {

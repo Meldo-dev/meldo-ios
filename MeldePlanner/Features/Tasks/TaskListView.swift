@@ -1,4 +1,7 @@
 import MeldeCore
+import MeldoKit
+import MeldoState
+import MeldoUI
 import SwiftUI
 
 /// Hausaufgaben and to-dos grouped by urgency (grouping comes from the Rust core).
@@ -137,79 +140,5 @@ private struct TaskBoard: View {
         }
         .background(ThemedBackground())
         .animation(.default, value: model.tasks)
-    }
-}
-
-/// One task with a check circle. Checking off gives haptic feedback.
-struct TaskRow: View {
-    @Environment(AppModel.self) private var model
-    let task: SchoolTask
-    let today: Date
-    var onOpen: () -> Void
-
-    @State private var checks = 0
-
-    var body: some View {
-        let subject = model.subject(task.subjectID)
-        HStack(spacing: DS.spacingM) {
-            Button {
-                checks += 1
-                model.toggleDone(task.id)
-            } label: {
-                Image(systemName: task.isDone ? "checkmark.circle.fill" : "circle")
-                    .font(.title2)
-                    .foregroundStyle(task.isDone ? Color.green : (subject?.color.color ?? Color.secondary))
-                    .contentTransition(.symbolEffect(.replace))
-                    .frame(width: 44, height: 44)
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(task.isDone ? L("Als offen markieren") : L("Als erledigt markieren"))
-            .sensoryFeedback(.success, trigger: checks) { _, _ in model.preferences.haptics }
-
-            Button(action: onOpen) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(task.title)
-                        .foregroundStyle(task.isDone ? .secondary : .primary)
-                        .strikethrough(task.isDone)
-                    HStack(spacing: DS.spacingS) {
-                        if let subject {
-                            Text(subject.name).foregroundStyle(subject.color.color)
-                        }
-                        if let due = task.dueDate {
-                            Text(DueText.label(due, today: today, calendar: model.calendar))
-                                .foregroundStyle(!task.isDone && due < model.calendar.startOfDay(for: today) ? Color.red : Color.secondary)
-                        }
-                        if task.recurrence != .never {
-                            Image(systemName: "repeat").accessibilityLabel(L("Wiederholt sich"))
-                        }
-                        if task.reminderAt != nil, !task.isDone {
-                            Image(systemName: "bell").accessibilityLabel(L("Erinnerung"))
-                        }
-                    }
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .buttonStyle(.plain)
-            if task.priority == .high, !task.isDone {
-                Image(systemName: "exclamationmark.circle.fill")
-                    .foregroundStyle(.orange)
-                    .accessibilityLabel(L("Wichtig"))
-            }
-        }
-    }
-}
-
-enum DueText {
-    static func label(_ due: Date, today: Date, calendar: Calendar) -> String {
-        let days = calendar.dateComponents([.day], from: calendar.startOfDay(for: today), to: calendar.startOfDay(for: due)).day ?? 0
-        switch days {
-        case 0: return L("heute")
-        case 1: return L("morgen")
-        case -1: return L("gestern")
-        case 2...6: return due.formatted(.dateTime.weekday(.wide).locale(Localization.locale))
-        default: return due.formatted(.dateTime.day().month(.abbreviated).locale(Localization.locale))
-        }
     }
 }

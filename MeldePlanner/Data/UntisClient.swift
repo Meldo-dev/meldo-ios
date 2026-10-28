@@ -1,5 +1,8 @@
 import Foundation
 import MeldeCore
+import MeldoKit
+import MeldoState
+import MeldoUI
 
 /// Talks to WebUntis. Only two hosts are ever contacted: Untis'
 /// school search and the student's own school server. Request bodies and
