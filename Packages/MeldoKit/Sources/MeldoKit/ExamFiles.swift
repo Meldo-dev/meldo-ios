@@ -57,6 +57,8 @@ public nonisolated enum ExamFiles: Sendable {
     /// Where the PDF is now: in Scans, or still in an older location
     /// (Documents/Prüfungen, or Application Support in version 0.2).
     /// `organizeDocuments()` then moves it into place.
+    /// Only ever a regular file, or a free path for a new one: a synced name can also name a
+    /// folder ("Mathematik"), and deleting or moving that would take every file in it along.
     public static func locate(_ fileName: String) -> URL? {
         guard isSafe(fileName) else { return nil }
         let manager = FileManager.default
@@ -65,7 +67,15 @@ public nonisolated enum ExamFiles: Sendable {
             documents()?.appending(path: "Prüfungen/" + fileName),
             legacyFolder()?.appending(path: fileName),
         ].compactMap { $0 }
-        return candidates.first { manager.fileExists(atPath: $0.path(percentEncoded: false)) } ?? candidates.first
+        if let file = candidates.first(where: isRegularFile) { return file }
+        guard let fresh = candidates.first, !manager.fileExists(atPath: fresh.path(percentEncoded: false)),
+              (try? fresh.resourceValues(forKeys: [.isSymbolicLinkKey]))?.isSymbolicLink != true else { return nil }
+        return fresh
+    }
+
+    /// A file itself, not a folder or a link to something else.
+    private static func isRegularFile(_ url: URL) -> Bool {
+        (try? url.resourceValues(forKeys: [.isRegularFileKey]))?.isRegularFile == true
     }
 
     /// "2. Klassenarbeit (12.10.2026).pdf", unique in its folder.
