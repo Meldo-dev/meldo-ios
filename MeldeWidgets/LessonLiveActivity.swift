@@ -7,17 +7,24 @@ import WidgetKit
 extension LessonActivityAttributes {
     /// Started by "Vorschau anzeigen" in Status (`LessonActivity.preview`).
     var isPreview: Bool { lessonID.hasPrefix("preview-") }
+
+    /// Activities render in the app language, not the phone's.
+    func applyLanguage() {
+        if let language { Localization.apply(language) }
+    }
 }
 
 /// Lock Screen / Dynamic Island view of the running lesson.
 struct LessonLiveActivity: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: LessonActivityAttributes.self) { context in
+            let _ = context.attributes.applyLanguage()
             LessonActivityView(context: context)
                 .padding(16)
                 .activityBackgroundTint(Color(.secondarySystemBackground))
                 .activitySystemActionForegroundColor(.primary)
         } dynamicIsland: { context in
+            context.attributes.applyLanguage()
             let color = SubjectColor(rawValue: context.attributes.colorKey)?.color ?? .meldoOrange
             return DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {

@@ -22,14 +22,21 @@ public nonisolated struct LessonActivityAttributes: ActivityAttributes, Sendable
     public var symbolName: String
     public var start: Date
     public var end: Date
+    /// The app language when the activity started. The widget extension can't always
+    /// read the store (no App Group on sideloaded builds), so it travels along.
+    public var language: AppLanguage?
 
-    public init(lessonID: String, subjectName: String, colorKey: String, symbolName: String, start: Date, end: Date) {
+    public init(
+        lessonID: String, subjectName: String, colorKey: String, symbolName: String,
+        start: Date, end: Date, language: AppLanguage? = nil
+    ) {
         self.lessonID = lessonID
         self.subjectName = subjectName
         self.colorKey = colorKey
         self.symbolName = symbolName
         self.start = start
         self.end = end
+        self.language = language
     }
 }
 
@@ -72,7 +79,8 @@ public nonisolated enum LessonActivity: Sendable {
             colorKey: subject?.color.rawValue ?? SubjectColor.blue.rawValue,
             symbolName: subject?.symbolName ?? "book.closed",
             start: start,
-            end: end
+            end: end,
+            language: data.preferences.language
         )
         _ = try? Activity<LessonActivityAttributes>.request(attributes: attributes, content: content, pushType: nil)
     }
@@ -103,7 +111,8 @@ extension LessonActivity {
             colorKey: subject?.color.rawValue ?? SubjectColor.blue.rawValue,
             symbolName: subject?.symbolName ?? "book.closed",
             start: start,
-            end: end
+            end: end,
+            language: data.preferences.language
         )
         let state = LessonActivityAttributes.ContentState(
             count: MeldeEngine.count(data, lessonID: lesson.lessonId, on: day, calendar: calendar),

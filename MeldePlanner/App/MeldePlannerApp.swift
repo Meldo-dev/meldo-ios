@@ -97,27 +97,35 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         return true
     }
 
+    // The completion-handler variants: with the async ones the system's completion
+    // ran off the main thread and UIKit aborted when a notification was tapped.
     nonisolated func userNotificationCenter(
         _ center: UNUserNotificationCenter,
-        didReceive response: UNNotificationResponse
-    ) async {
+        didReceive response: UNNotificationResponse,
+        withCompletionHandler completionHandler: @escaping @Sendable () -> Void
+    ) {
         // A plain tap only opens the app. Storage is touched only for answers,
         // on the main actor, never while the app may still be launching.
         guard let answer = LessonCheckIns.answer(
             actionIdentifier: response.actionIdentifier,
             userInfo: response.notification.request.content.userInfo
-        ) else { return }
-        await MainActor.run {
+        ) else {
+            DispatchQueue.main.async(execute: completionHandler)
+            return
+        }
+        Task { @MainActor in
             if LessonCheckIns.handle(answer, store: try? LocalStore.standard()) {
                 NotificationCenter.default.post(name: .meldeDataChanged, object: nil)
             }
+            completionHandler()
         }
     }
 
     nonisolated func userNotificationCenter(
         _ center: UNUserNotificationCenter,
-        willPresent notification: UNNotification
-    ) async -> UNNotificationPresentationOptions {
-        [.banner, .list, .sound]
+        willPresent notification: UNNotification,
+        withCompletionHandler completionHandler: @escaping @Sendable (UNNotificationPresentationOptions) -> Void
+    ) {
+        completionHandler([.banner, .list, .sound])
     }
 }
