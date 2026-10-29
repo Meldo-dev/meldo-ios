@@ -29,7 +29,7 @@ public struct SubjectPickerSheet: View {
             guard let id, let subject = model.subject(id), !list.contains(where: { $0.subject.id == id }) else { return }
             list.append(Suggestion(subject: subject, reason: reason))
         }
-        if let ended = blocks.last(where: { $0.endMinute <= minute && minute - $0.endMinute <= 90 }) {
+        if let ended = blocks.last(where: { $0.endMinute <= minute && AppModel.gap(from: $0.endMinute, to: minute) <= 90 }) {
             add(ended.subjectID, L("Gerade vorbei"))
         }
         if let next = blocks.first(where: { $0.startMinute > minute }) {
