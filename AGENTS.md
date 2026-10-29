@@ -72,7 +72,7 @@ Tests live in each package's `Tests/` folder. Device builds need `MELDE_TEAM_ID`
 Workflows:
 
 - `ios.yml`: builds the core, tests `MeldeCore` and the app, builds an unsigned IPA. Runs on pushes to `main` and on pull requests.
-- `release.yml`: on a `vX.Y.Z` tag on `main`, `beta` or `alpha`, publishes the unsigned IPA as a GitHub pre-release.
+- `release.yml`: on a `vX.Y.Z` tag on `main`, `beta` or `alpha`, publishes the unsigned IPA as a GitHub release: Latest when the tag is on `main`, a pre-release when it is only on `beta` or `alpha`.
 - `testflight.yml`: manual, `main` only, uploads to TestFlight.
 - `hygiene.yml`, `ui-review.yml`.
 

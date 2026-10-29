@@ -1,7 +1,7 @@
 name: Release
 
 # Builds the unsigned iOS IPA with the regular build workflow (including its tests) and
-# publishes it as a GitHub pre-release.
+# publishes it as a GitHub release: marked Latest when the tag is on main (one click from the repo page and /releases/latest), a pre-release when it is only on beta or alpha.
 #   git tag v0.9.0 && git push origin v0.9.0
 # or run it from the Actions tab with a tag name. App Store builds go through testflight.yml.
 on:
@@ -64,6 +64,9 @@ jobs:
 
       - name: Create the release
         run: |
+          # On main: the Latest release. Only on beta or alpha: a pre-release.
+          status=$(gh api "repos/$GITHUB_REPOSITORY/compare/main...$GITHUB_SHA" --jq .status)
+          if [ "$status" = identical ] || [ "$status" = behind ]; then kind=--latest; else kind=--prerelease; fi
           mkdir -p release
           cp dist/ios/*.ipa "release/Meldo-$TAG-unsigned.ipa"
           notes=$(cat <<'NOTES'
@@ -74,6 +77,6 @@ jobs:
             --repo "$GITHUB_REPOSITORY" \
             --target "$GITHUB_SHA" \
             --title "Meldo $TAG for iOS" \
-            --prerelease \
+            "$kind" \
             --notes "$notes" \
             --generate-notes
