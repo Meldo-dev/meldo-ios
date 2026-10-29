@@ -251,7 +251,8 @@ nonisolated enum DriveSync {
             case let (remote?, false):
                 // The synced name is lower-trust input: it must stay inside the scans folder.
                 guard ExamFiles.isSafe(document.fileName),
-                      let url = folder.scans()?.appending(path: document.fileName) else { continue }
+                      let url = folder.scans()?.appending(path: document.fileName),
+                      !manager.fileExists(atPath: url.path(percentEncoded: false)) else { continue }
                 let pdf: Data
                 do {
                     pdf = try SyncBox.open(try await drive.read(remote.id, limit: maxFileBytes), key: key, context: context(name))
@@ -265,11 +266,20 @@ nonisolated enum DriveSync {
                 }
                 // A file added here while downloading (same name) is never replaced.
                 guard !manager.fileExists(atPath: url.path(percentEncoded: false)) else { continue }
-                try manager.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
-                try pdf.write(to: url, options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication])
+                // A name this device can't store (too long, or below a file) skips that document only;
+                // the others and the cleanup below still run.
+                do {
+                    try manager.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+                    try pdf.write(to: url, options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication])
+                } catch {
+                    continue
+                }
             case (nil, true):
                 guard let local, folder.isUploadable(local) else { continue }
-                _ = try await drive.create(name, data: try SyncBox.seal(Data(contentsOf: local), key: key, context: context(name)))
+                let sealed = try SyncBox.seal(Data(contentsOf: local), key: key, context: context(name))
+                // Other devices delete a larger file as not Meldo's, so it would never arrive.
+                guard sealed.count <= maxFileBytes else { continue }
+                _ = try await drive.create(name, data: sealed)
             default:
                 continue
             }

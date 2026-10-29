@@ -161,6 +161,26 @@ struct DriveSyncTests {
         #expect(await drive.contents(named: DriveSync.fileName(exam.id)).isEmpty)
     }
 
+    /// A document this device can't store under its name (here below a file) is skipped; the rest still syncs.
+    @Test func aDocumentThatCantBeStoredDoesNotStopTheOthers() async throws {
+        let (drive, key, keyID) = try await backup()
+        let phone = try Device(), ipad = try Device()
+        let blocked = ExamDocument(title: "a", date: .now, fileName: "a.pdf/c.pdf", pageCount: 1)
+        let ok = ExamDocument(title: "ok", date: .now, fileName: "Other/ok.pdf", pageCount: 1)
+        for exam in [blocked, ok] {
+            let url = phone.folder.appending(path: exam.fileName)
+            try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+            try Data("%PDF \(exam.title)".utf8).write(to: url)
+            _ = try phone.store.update { $0.exams.append(exam) }
+        }
+        try await DriveSync.run(store: phone.store, drive: drive, key: key, keyID: keyID, documents: phone.documents)
+
+        // On the iPad "a.pdf" is a file, so nothing can be stored below it.
+        try Data("%PDF other".utf8).write(to: ipad.folder.appending(path: "a.pdf"))
+        try await DriveSync.run(store: ipad.store, drive: drive, key: key, keyID: keyID, documents: ipad.documents)
+        #expect(try Data(contentsOf: ipad.folder.appending(path: ok.fileName)) == Data("%PDF ok".utf8))
+    }
+
     @Test func aSyncedFileNameCantLeaveTheScansFolder() async throws {
         let (drive, key, keyID) = try await backup()
         let phone = try Device(), ipad = try Device()
