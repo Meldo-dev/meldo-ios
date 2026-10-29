@@ -11,8 +11,6 @@ if [[ -z ${sim:-} ]]; then
 else
   xcodebuild test -project MeldePlanner.xcodeproj -scheme MeldePlanner \
     -destination "id=$sim" CODE_SIGNING_ALLOWED=NO \
-    -only-testing:MeldoUntisTests/SecurityTests \
-    -only-testing:MeldoUntisTests/AuditFixTests \
     -only-testing:MeldoTeamsTests/AuditFixTests \
     -only-testing:MeldoKitTests/ExamFilesTests \
     -only-testing:MeldoDriveTests 2>&1 | grep -E "✔|✘|passed|failed|error:|\*\* TEST" | grep -v "Failed to delete history" || failed=1

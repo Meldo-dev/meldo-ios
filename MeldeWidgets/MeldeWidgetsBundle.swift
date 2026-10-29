@@ -9,7 +9,6 @@ struct MeldeWidgetsBundle: WidgetBundle {
         MeldoStatsWidget()
         TodayScheduleWidget()
         HomeworkWidget()
-        HolidayCountdownWidget()
         MeldenControl()
         LessonLiveActivity()
     }

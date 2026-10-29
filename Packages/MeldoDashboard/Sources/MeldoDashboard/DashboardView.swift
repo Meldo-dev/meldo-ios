@@ -50,13 +50,9 @@ struct DashboardView: View {
         .sheet(.newSubject, isPresented: $addingSubject)
     }
 
-    /// Cards of this build, in the student's order. Without WebUntis, its cards would only
-    /// say "connect WebUntis" three times; they stay hidden until then, except while
-    /// arranging so they can be placed.
+    /// Cards of this build, in the student's order.
     private var visibleSlots: [CardSlot<DashboardCard>] {
-        let layout = model.preferences.homeLayout.filter { features.dashboardCard($0.kind) != nil }
-        guard model.data.untis == nil, !editing else { return layout }
-        return layout.filter { features.dashboardCard($0.kind)?.needsUntis != true }
+        model.preferences.homeLayout.filter { features.dashboardCard($0.kind) != nil }
     }
 
     /// Saves the arrangement and keeps the slots of cards this build doesn't have.
@@ -89,12 +85,6 @@ private struct GettingStartedCard: View {
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.glassProminent)
-            .controlSize(.large)
-            RouteLink(.page("untis")) {
-                Label(L("Mit WebUntis verbinden"), systemImage: "arrow.triangle.2.circlepath")
-                    .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.glass)
             .controlSize(.large)
         }
     }

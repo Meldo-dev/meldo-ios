@@ -176,9 +176,7 @@ public struct UntisExamRow: View {
 
 public struct AbsenceRow: View {
     @Environment(AppModel.self) private var model
-    @Environment(\.features) private var features
     public let absence: UntisAbsenceRecord
-    @State private var writingExcuse = false
 
     public init(absence: UntisAbsenceRecord) {
         self.absence = absence
@@ -186,12 +184,6 @@ public struct AbsenceRow: View {
 
     public var body: some View {
         row
-            .contextMenu {
-                if features.has(.excuseNote(absence)) {
-                    Button(L("Entschuldigung erstellen"), systemImage: "doc.text") { writingExcuse = true }
-                }
-            }
-            .sheet(.excuseNote(absence), isPresented: $writingExcuse)
     }
 
     private var row: some View {

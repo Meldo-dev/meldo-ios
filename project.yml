@@ -33,8 +33,6 @@ packages:
     path: Packages/MeldoUI
   MeldoGrades:
     path: Packages/MeldoGrades
-  MeldoHolidays:
-    path: Packages/MeldoHolidays
   MeldoStatistics:
     path: Packages/MeldoStatistics
   MeldoSubjects:
@@ -59,8 +57,6 @@ packages:
     path: Packages/MeldoTeams
   MeldoDrive:
     path: Packages/MeldoDrive
-  MeldoUntis:
-    path: Packages/MeldoUntis
 
 targets:
   MeldePlanner:
@@ -82,7 +78,6 @@ targets:
       - package: MeldoState
       - package: MeldoUI
       - package: MeldoGrades
-      - package: MeldoHolidays
       - package: MeldoStatistics
       - package: MeldoSubjects
       - package: MeldoTasks
@@ -95,7 +90,6 @@ targets:
       - package: MeldoSettings
       - package: MeldoTeams
       - package: MeldoDrive
-      - package: MeldoUntis
       - target: MeldeWidgets
     entitlements:
       path: MeldePlanner/MeldePlanner.entitlements
@@ -120,7 +114,7 @@ targets:
             CFBundleURLSchemes: [meldeplanner]
         # AltStore rewrites this to the App Group names it registered for the user's team.
         ALTAppGroups: [group.app.meldeplanner.ios]
-        # WebUntis updates in the background (Background App Refresh).
+        # Teams and Google Drive update in the background (Background App Refresh).
         UIBackgroundModes: [fetch]
         BGTaskSchedulerPermittedIdentifiers: [app.meldeplanner.ios.refresh]
         # Prüfungen (Documents/Prüfungen) appear in the Files app.
@@ -206,7 +200,6 @@ schemes:
         - package: MeldoExams/MeldoExamsTests
         - package: MeldoTeams/MeldoTeamsTests
         - package: MeldoDrive/MeldoDriveTests
-        - package: MeldoUntis/MeldoUntisTests
         - MeldePlannerUITests
       gatherCoverageData: true
     run:

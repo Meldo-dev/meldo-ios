@@ -32,7 +32,6 @@ extension AppModel {
 #if DEBUG
 /// Launch options understood in UI-test mode:
 /// `-uitest-now 2026-10-19T08:10` (local time), `-uitest-seed`,
-/// `-uitest-untis` (recorded WebUntis answers instead of own lessons),
 /// `-uitest-language de|tr|en`, `-uitest-theme <AppTheme>`,
 /// `-uitest-onboarding` (show the first-run tour; hidden otherwise so other tests start on Start).
 /// `-uitest-seed-store` (without `-uitest`) replaces the real store with the sample week so
@@ -93,9 +92,7 @@ private struct UITestLaunch {
                 model.setAppearance(appearance)
             }
         }
-        if arguments.contains("-uitest-untis") {
-            MeldoFeatures.app.feature("untis")?.seedSample?(model, fixed)
-        } else if arguments.contains("-uitest-seed") {
+        if arguments.contains("-uitest-seed") {
             SampleData.seed(model, now: fixed)
         }
         if !arguments.contains("-uitest-onboarding") {
