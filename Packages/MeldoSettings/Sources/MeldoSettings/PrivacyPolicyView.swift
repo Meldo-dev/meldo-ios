@@ -67,6 +67,10 @@ struct PrivacyPolicyView: View {
             L("Verantwortlich und Kontakt"),
             L("Meldo wird von Yavuz Selim Kolbasar als kostenloses, nicht-kommerzielles Projekt entwickelt. Bei Fragen zum Datenschutz erreichst du den Entwickler unter contact@meldo.dev. Meldo ist Open Source: Den Quellcode kannst du auf GitHub selbst prüfen. Meldo ist kein Angebot von Untis, Microsoft oder Google und steht mit ihnen in keiner Verbindung.")
         ),
+        (
+            L("Widerspruchsrecht"),
+            L("Verarbeitet der Entwickler Daten nach Art. 6 Abs. 1 lit. f DSGVO (Absturzberichte, E-Mails), kannst du dem jederzeit widersprechen, per E-Mail an contact@meldo.dev.")
+        ),
     ] }
 
     /// Sections about a connection that may be left out of the build, by their title.

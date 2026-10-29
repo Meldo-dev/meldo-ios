@@ -41,7 +41,7 @@ struct TeamsConnectView: View {
                         LabeledContent(L("Zuletzt aktualisiert")) { Text(last, style: .relative) }
                     }
                 } footer: {
-                    Text(L("Neue Aufgaben kommen automatisch dazu, wenn du die App öffnest (höchstens alle drei Stunden)."))
+                    Text(L("Neue Aufgaben kommen automatisch dazu, beim Öffnen und im Hintergrund, höchstens alle drei Stunden."))
                 }
                 Section {
                     Button {
