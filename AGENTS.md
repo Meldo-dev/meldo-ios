@@ -85,6 +85,14 @@ Workflows:
 - Every user-facing string goes in `meldo-core/l10n/Localizable.xcstrings`, German first, with an English translation.
 - Don't claim a build or test passed unless you ran it and saw the output.
 
+## Branch and tag rules (enforced by GitHub)
+
+- `main`, `beta` and `alpha` accept changes only through a pull request: one approving review from someone other than the last pusher, all review threads resolved, squash merge only, linear history, signed commits.
+- Required checks must pass on the latest commit: hygiene `check`, `Build and test (simulator)`.
+- Force pushes and deleting these branches are blocked. Release tags `v*` can't be created, moved or deleted except by an org admin.
+- Secret scanning with push protection and Dependabot alerts are on. A push that contains a secret is rejected; never bypass it.
+- Org admins can bypass these rules. Use that only for what the owner asked for, never to skip a failing check.
+
 ## Allowed and not allowed
 
 - Never put secrets in the repo, code, logs, commits or chat: OAuth client IDs (Google iOS, Google Android, Microsoft Teams), keystore passwords, API keys, tokens. Say where they come from instead: the gitignored `Config/Secrets.xcconfig` on iOS, `~/.gradle/gradle.properties` on Android, GitHub secrets in CI.
@@ -92,7 +100,7 @@ Workflows:
 - Participation counts are not grades. Grade logic goes through the scale type (1 to 6, lower is better; 0 to 15, higher is better). Grading rules are configuration, not constants.
 - The sync format must stay identical on iOS and Android.
 - No new dependency without a stated reason. No mock data shown as real.
-- Don't push to `main`, `beta` or `alpha`, and don't create tags or releases, unless the owner asked for it. Work on a branch and open a pull request.
+- Work on a branch and open a pull request; don't create tags or releases unless the owner asked for it.
 - `beta` and `alpha` differ from `main` on purpose. Don't merge `main` into them, and don't force-push.
 - Don't touch the owner's devices or real data.
 - WebUntis import: waiting for approval from Untis. Until then it stays out of the apps; don't add it back or reintroduce code for it.
