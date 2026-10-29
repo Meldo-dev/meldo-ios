@@ -77,7 +77,7 @@ struct ExamListView: View {
                 } header: {
                     Text(L("Anstehend"))
                 } footer: {
-                    Text(L("Termine aus WebUntis. Zurückgegebene Arbeiten scannst du unten ein."))
+                    Text(L("Zurückgegebene Arbeiten scannst du unten ein."))
                 }
             }
             if model.exams.isEmpty {

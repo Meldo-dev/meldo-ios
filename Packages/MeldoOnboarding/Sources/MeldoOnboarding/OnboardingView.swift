@@ -13,7 +13,6 @@ struct OnboardingView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var page = 0
     @State private var addingSubject = false
-    @State private var connectingUntis = false
 
     private static var lastPage: Int { FeaturePage.all.count + 2 }
 
@@ -29,7 +28,6 @@ struct OnboardingView: View {
                     feature.tag(index + 2)
                 }
                 SetupPage(
-                    connectUntis: features.has(.page("untis")) ? { connectingUntis = true } : nil,
                     addSubject: { addingSubject = true },
                     later: model.finishOnboarding
                 )
@@ -56,7 +54,6 @@ struct OnboardingView: View {
                         .accessibilityIdentifier("onboarding-skip")
                 }
             }
-            .navigationDestination(isPresented: $connectingUntis) { features.destination(.page("untis")) }
         }
         .sheet(isPresented: $addingSubject, onDismiss: {
             // A saved subject is enough to start: Melden is now one tap away on Start.
@@ -65,10 +62,6 @@ struct OnboardingView: View {
             features.destination(.newSubject)
         }
         .presentationSizing(.form)
-        // Connected WebUntis from the tour: the tour has done its job, close it.
-        .onChange(of: model.data.untis != nil) { _, connected in
-            if connected { model.finishOnboarding() }
-        }
     }
 
     private func next() {
@@ -194,7 +187,7 @@ private struct FeaturePage: View {
             title: L("Stundenplan"),
             intro: L("Hier siehst du deine Woche: welches Fach, welcher Raum, welche Lehrkraft. Wischen bringt dich zur nächsten oder letzten Woche."),
             rows: [
-                ("arrow.triangle.2.circlepath", L("Aus WebUntis oder selbst"), L("Verbinde WebUntis, dann kommt dein Plan von allein, mit Vertretungen und Ausfällen. Ohne WebUntis trägst du die Stunden selbst ein.")),
+                ("square.and.pencil", L("Einmal eintragen"), L("Trag deine Stunden einmal ein, dann kennt Meldo deine Woche.")),
                 ("hand.tap", L("Auf eine Stunde tippen"), L("Zeigt alles zur Stunde. Von dort trägst du auch eine Hausaufgabe für dieses Fach ein.")),
                 ("ellipsis.circle", L("Menü oben rechts"), L("„Heute“ springt zurück zum heutigen Tag. Dort erklärt Meldo auch, was die Farben bedeuten.")),
                 ("a.circle", L("A- und B-Wochen"), L("Hat deine Schule Stunden nur jede zweite Woche? Schalte A/B-Wochen in den Einstellungen ein.")),
@@ -208,7 +201,7 @@ private struct FeaturePage: View {
             rows: [
                 ("plus.circle", L("Aufgabe eintragen"), L("Fach wählen, und Meldo schlägt als Fälligkeit die nächste Stunde in diesem Fach vor. Du kannst auch ein anderes Datum nehmen.")),
                 ("bell", L("Erinnerungen"), L("Lass dich vorher erinnern. Aufgaben, die jede Woche wiederkommen, legt Meldo nach dem Abhaken neu an.")),
-                ("tray.and.arrow.down", L("Von WebUntis und Teams"), L("Bist du verbunden, landen Hausaufgaben und Teams-Aufgaben hier von selbst.")),
+                ("person.3", L("Von Teams"), L("Bist du mit Teams verbunden, landen deine Teams-Aufgaben hier von selbst.")),
                 ("calendar", L("Kalender"), L("Zeigt Prüfungen, fällige Aufgaben und deine Meldungen über den ganzen Monat.")),
             ]
         ),
@@ -234,21 +227,10 @@ private struct FeaturePage: View {
             ]
         ),
         FeaturePage(
-            symbol: "person.crop.circle.badge.clock",
-            title: L("Abwesenheiten und Ferien"),
-            intro: L("Mit WebUntis siehst du, wann du gefehlt hast und ob es schon entschuldigt ist."),
-            rows: [
-                ("checkmark.circle", L("Entschuldigt oder offen"), L("Grün ist entschuldigt, rot ist noch offen. Verspätungen zählt Meldo extra.")),
-                ("doc.text", L("Entschuldigung schreiben"), L("Halte eine Abwesenheit gedrückt, und Meldo füllt dir eine Entschuldigung zum Ausdrucken oder Teilen vor.")),
-                ("sun.horizon", L("Ferien"), L("Ferien und freie Tage kommen aus WebUntis. Dort zeigt der Stundenplan keine Stunden, also fragt Meldo auch nicht nach.")),
-            ]
-        ),
-        FeaturePage(
             symbol: "link",
             title: L("Verbindungen"),
             intro: L("Meldo kann sich mit Diensten verbinden, die du schon nutzt. Alles ist freiwillig, und du kannst es jederzeit wieder trennen."),
             rows: [
-                ("arrow.triangle.2.circlepath", L("WebUntis"), L("Stundenplan, Vertretungen, Hausaufgaben, Prüfungen und Abwesenheiten deiner Schule. Du meldest dich mit deinem normalen Schul-Login an.")),
                 ("person.3", L("Microsoft Teams"), L("Holt die Aufgaben aus deinen Teams-Klassen. Du schaltest es in den Einstellungen ein, wenn deine Schule es erlaubt.")),
                 ("externaldrive", L("Google Drive"), L("Ein verschlüsseltes Backup in deinem eigenen Google Drive, mit all deinen Einstellungen. Beim Einrichten legst du ein Backup Passwort fest; damit öffnest du es auch auf einem neuen Gerät.")),
             ]
@@ -279,7 +261,7 @@ private struct FeaturePage: View {
             intro: L("Meldo hat kein Konto, keinen eigenen Server, keine Werbung und kein Tracking."),
             rows: [
                 ("iphone", L("Auf deinem Gerät"), L("Alles, was du einträgst, liegt auf deinem iPhone oder iPad.")),
-                ("key", L("Passwörter im Schlüsselbund"), L("Deine Anmeldungen für WebUntis, Teams und Google bleiben im Schlüsselbund dieses Geräts und gehen nie an Meldo.")),
+                ("key", L("Passwörter im Schlüsselbund"), L("Deine Anmeldungen für Teams und Google bleiben im Schlüsselbund dieses Geräts und gehen nie an Meldo.")),
                 ("meldo.hand.raised", L("Du entscheidest"), L("Daten verlassen dein Gerät nur, wenn du selbst eine Verbindung einschaltest. Mehr dazu steht in der Datenschutzerklärung unter Über Meldo.")),
             ]
         ),
@@ -287,7 +269,6 @@ private struct FeaturePage: View {
 }
 
 private struct SetupPage: View {
-    var connectUntis: (() -> Void)?
     var addSubject: () -> Void
     var later: () -> Void
 
@@ -297,19 +278,6 @@ private struct SetupPage: View {
             Text(L("Mit deinem Stundenplan ordnet Meldo jede Meldung der richtigen Stunde zu."))
                 .foregroundStyle(.secondary)
             VStack(spacing: DS.spacingM) {
-                if let connectUntis {
-                    Button(action: connectUntis) {
-                        Label(L("Mit WebUntis verbinden"), systemImage: "arrow.triangle.2.circlepath")
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.glassProminent)
-                    .controlSize(.large)
-                    .accessibilityIdentifier("onboarding-untis")
-                    Text(L("Deine Anmeldung geht direkt an WebUntis, nie an Meldo, und bleibt im Schlüsselbund dieses Geräts."))
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
                 Button(action: addSubject) {
                     Label(L("Fach selbst anlegen"), systemImage: "plus")
                         .frame(maxWidth: .infinity)

@@ -231,7 +231,7 @@ struct GoogleDriveView: View {
                 if let problem = model.driveProblem {
                     Text(problem).foregroundStyle(.red)
                 }
-                Text(L("Meldo sichert nach jeder Änderung und beim Öffnen. Passwörter für WebUntis und Teams bleiben auf jedem Gerät."))
+                Text(L("Meldo sichert nach jeder Änderung und beim Öffnen. Die Anmeldung bei Teams bleibt auf jedem Gerät."))
             }
         }
         Section {

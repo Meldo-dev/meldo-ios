@@ -30,8 +30,6 @@ public enum MeldoRoute: Hashable, Sendable {
     case newSubject
     /// A new lesson on a weekday (Monday = 0).
     case newLesson(weekday: Int)
-    /// An Entschuldigung for a WebUntis absence.
-    case excuseNote(UntisAbsenceRecord)
 }
 
 /// Why the app asks features to bring their data up to date.
@@ -49,16 +47,13 @@ public struct DashboardCardProvider {
     public var kind: DashboardCard
     public var title: () -> String
     public var symbol: String
-    /// Only useful with WebUntis: hidden on Start until it's connected, except while arranging.
-    public var needsUntis: Bool
     public var content: (_ now: Date, _ size: CardSize) -> AnyView
 
-    public init<Content: View>(_ kind: DashboardCard, title: @escaping () -> String, symbol: String, needsUntis: Bool = false,
+    public init<Content: View>(_ kind: DashboardCard, title: @escaping () -> String, symbol: String,
                                @ViewBuilder content: @escaping (_ now: Date, _ size: CardSize) -> Content) {
         self.kind = kind
         self.title = title
         self.symbol = symbol
-        self.needsUntis = needsUntis
         self.content = { AnyView(content($0, $1)) }
     }
 }

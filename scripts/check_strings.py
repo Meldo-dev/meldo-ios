@@ -34,13 +34,11 @@ EXTRA_KEYS = {
     "Erfasst eine Meldung für die laufende Stunde.",
     "Meldo Statistik", "Deine Meldungen diese Woche.", "Stundenplan heute",
     "Deine Stunden heute, Ausfälle durchgestrichen.", "Was bald fällig ist.",
-    "Ferien-Countdown", "Tage bis zu den nächsten Ferien.",
-    # Android only (ExcuseNoteScreen.kt) until it gets the reason list.
-    "Grund, z. B. Krankheit",
+    # Android only.
     "Mit der Kamera, Seite für Seite",
-    # Android only (UntisConnectScreen.kt, OnboardingScreen.kt) until Android matches iOS.
-    "Ausfälle und Vertretungen", "Importiert", "Neue Fächer", "Stunden pro Woche",
     "Holt die Aufgaben aus deinen Teams-Klassen in deine Aufgabenliste.",
+    # Android only: titles of Start cards this build doesn't show (DashboardScreen.kt, MoreScreen.kt).
+    "Nachrichten", "Nächste Ferien",
 }
 
 CALL = re.compile(r'\b(?:L|LGerman|localize)\("((?:[^"\\]|\\.)*)"\)')
