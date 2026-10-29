@@ -120,7 +120,9 @@ struct AboutView: View {
             Section(L("Datenschutz")) {
                 Text(L("Deine Daten bleiben auf deinem Gerät. Meldo hat keinen eigenen Server, keine Werbung und kein Tracking."))
                     .font(.subheadline)
-                NavigationLink(L("Datenschutzerklärung")) { PrivacyPolicyView() }
+                // The legal texts live on meldo.dev, in the app language, so they can't drift apart.
+                Link(L("Datenschutzerklärung"), destination: website("privacy"))
+                Link(L("Nutzungsbedingungen"), destination: website("terms"))
             }
             Section(L("Hinweis")) {
                 Text(L("Meldo zählt deine Beteiligung und berechnet Durchschnitte. Offizielle Noten vergibt allein deine Schule."))
@@ -128,6 +130,11 @@ struct AboutView: View {
             }
         }
         .navigationTitle(L("Über Meldo"))
+    }
+
+    /// A page of meldo.dev in the app language, e.g. https://meldo.dev/en/privacy.
+    private func website(_ page: String) -> URL {
+        URL(string: "https://meldo.dev/\(model.data.preferences.language.rawValue)/\(page)")!
     }
 }
 
