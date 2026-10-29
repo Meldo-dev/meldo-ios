@@ -26,7 +26,7 @@
 ## Features
 
 - Count a hand-raise with one tap in the app, from a widget or from Control Center. If phones have to stay in the bag at your school, Meldo asks once after each lesson instead.
-- Type in your timetable once, with A/B weeks if your school has them. The current lesson shows as a Live Activity / Live Update. The WebUntis import is switched off for now, until Untis approves it.
+- Type in your timetable once, with A/B weeks if your school has them. The current lesson shows as a Live Activity / Live Update. WebUntis import: waiting for approval from Untis.
 - See your average per subject on the German 1–6 or 0–15 point scale. Your school's weighting and rounding rules are settings, so they can match what your school uses.
 - Keep track of homework and exams with reminders and an exam calendar. You can scan worksheets to PDF, import Microsoft Teams assignments if you want.
 - Your data stays on the device, and Meldo has no server. If you turn on backup and sync, it goes to *your own* Google Drive and is encrypted on the device before it leaves (AES-256-GCM, PBKDF2-SHA256 with 600,000 rounds).

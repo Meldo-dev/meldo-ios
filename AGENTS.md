@@ -95,5 +95,5 @@ Workflows:
 - Don't push to `main`, `beta` or `alpha`, and don't create tags or releases, unless the owner asked for it. Work on a branch and open a pull request.
 - `beta` and `alpha` differ from `main` on purpose. Don't merge `main` into them, and don't force-push.
 - Don't touch the owner's devices or real data.
-- The WebUntis import is not part of the apps for now. Don't add it back or reintroduce code for it.
+- WebUntis import: waiting for approval from Untis. Until then it stays out of the apps; don't add it back or reintroduce code for it.
 - Site: no third-party requests, cookies or trackers. Keep the `/de/` and `/en/` URLs and the redirects. Legal pages: German is authoritative, English matches it.
