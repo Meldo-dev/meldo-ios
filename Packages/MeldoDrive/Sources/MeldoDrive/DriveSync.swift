@@ -192,6 +192,9 @@ nonisolated enum DriveSync {
         }
         try Task.checkCancellation()
         let sealed = try SyncBox.seal(JSONEncoder.sync.encode(merged), key: key, context: context(dataName))
+        // Every device reads a larger file as damaged and replaces it with its own data, so one
+        // this large is never uploaded: that would cost the other devices their changes.
+        guard sealed.count <= maxDataBytes else { throw Problem.tooLarge }
         // shortcut: Drive has no conditional write, so two devices saving at the same moment can
         // overwrite each other's upload. Nothing is lost: each keeps its data and merges next time.
         if let existing {
