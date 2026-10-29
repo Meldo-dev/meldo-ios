@@ -120,6 +120,8 @@ struct GoogleDriveView: View {
                 }
             }
             .disabled(working)
+        } footer: {
+            Text(L("Meldo fragt bei Google nur nach seinem versteckten App-Ordner und der E-Mail-Adresse deines Kontos. Die Adresse zeigt Meldo nur hier an."))
         }
     }
 

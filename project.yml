@@ -135,7 +135,7 @@ targets:
         INFOPLIST_KEY_CFBundleDisplayName: Meldo
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_NSSupportsLiveActivities: YES
-        INFOPLIST_KEY_NSCameraUsageDescription: "Meldo nutzt die Kamera, um Klassenarbeiten und Arbeitsblätter als PDF zu scannen. Die Scans werden auf deinem Gerät gespeichert und nur bei eingeschaltetem Backup in Google Drive verschlüsselt gesichert."
+        INFOPLIST_KEY_NSCameraUsageDescription: "Meldo nutzt die Kamera, um Klassenarbeiten und Arbeitsblätter als PDF zu scannen. Die Scans speichert Meldo auf deinem Gerät."
         INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: UIInterfaceOrientationPortrait
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
