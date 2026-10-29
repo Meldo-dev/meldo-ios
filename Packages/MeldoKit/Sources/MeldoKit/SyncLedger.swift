@@ -24,7 +24,9 @@ public nonisolated enum SyncMerge: Sendable {
     public static func record(from old: AppData, to new: inout AppData, at clock: Date) {
         var ledger = new.sync
         let seen = max(ledger.stamps.values.max() ?? .distantPast, ledger.tombstones.values.max() ?? .distantPast)
-        let now = max(clock, seen.addingTimeInterval(0.001))
+        // One second, not less: stamps are saved in whole seconds, so a smaller step would be lost
+        // and the new edit would tie with the stamp it must beat.
+        let now = max(clock, seen.addingTimeInterval(1))
         func note(_ key: String, before: Data?, after: Data?) {
             guard before != after else { return }
             if after == nil {
