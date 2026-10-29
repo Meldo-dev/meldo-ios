@@ -45,4 +45,13 @@ struct GradesTests {
         }
         #expect(points.subjectGradeText(for: bio.id) == "11 P.")
     }
+
+    /// Grades and settings come from other devices too: a value far outside the scale must not
+    /// stop the app when it's shown.
+    @Test func valuesOutsideTheScaleAreShownClamped() {
+        let model = makeModel(at: monday(8, 0))
+        model.setGradeScale(.points)
+        #expect(model.singleGradeText(1e19) == "15 P.")
+        #expect(model.singleGradeText(-1e19) == "0 P.")
+    }
 }

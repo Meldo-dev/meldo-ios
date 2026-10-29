@@ -260,9 +260,9 @@ struct GradeEditorView: View {
         title = grade.title
         date = grade.date
         if usesPoints {
-            points = Int(grade.value.rounded())
+            points = Int(min(max(grade.value.rounded(), 0), 15))
         } else {
-            whole = min(max(Int(grade.value.rounded()), 1), 6)
+            whole = Int(min(max(grade.value.rounded(), 1), 6))
             let diff = grade.value - Double(whole)
             tendency = diff < -0.01 ? 1 : (diff > 0.01 ? -1 : 0)
         }
@@ -287,7 +287,7 @@ struct GradeSettingsView: View {
                     Text(L("Notensystem"))
                 }
                 Section {
-                    let written = Int((model.preferences.writtenWeight * 100).rounded())
+                    let written = Int((min(max(model.preferences.writtenWeight, 0), 1) * 100).rounded())
                     LabeledContent(L("Schriftlich"), value: "\(written) %")
                     Slider(
                         value: Binding(get: { model.preferences.writtenWeight }, set: { model.setWrittenWeight(($0 * 20).rounded() / 20) }),

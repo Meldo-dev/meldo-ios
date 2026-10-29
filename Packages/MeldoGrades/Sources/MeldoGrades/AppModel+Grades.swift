@@ -86,7 +86,7 @@ extension AppModel {
             guard let grade = try? gradePointsToTraditional(points: points) else { return value }
             return (try? gradeTraditionalValue(grade: grade.grade, tendency: grade.tendency, step: step)) ?? Double(grade.grade)
         case .traditional:
-            let whole = min(max(Int(value.rounded()), 1), 6)
+            let whole = Int(min(max(value.rounded(), 1), 6))
             let diff = value - Double(whole)
             let tendency: FfiTendency = diff < -0.01 ? .plus : (diff > 0.01 ? .minus : .none)
             return Double((try? gradeTraditionalToPoints(grade: UInt8(whole), tendency: tendency)) ?? 0)
@@ -104,7 +104,8 @@ extension AppModel {
     /// One grade as the teacher wrote it ("3−", "2+", "11 P."); averages keep `gradeText`.
     func singleGradeText(_ value: Double) -> String {
         if data.preferences.gradeScale == .points {
-            return L("\(String(Int(value.rounded()))) P.")
+            // Clamped before converting: a synced value out of range would otherwise stop the app.
+            return L("\(String(Int(min(max(value.rounded(), 0), 15)))) P.")
         }
         return markText(value)
     }
