@@ -278,6 +278,19 @@ private struct SetupPage: View {
             Text(L("Mit deinem Stundenplan ordnet Meldo jede Meldung der richtigen Stunde zu."))
                 .foregroundStyle(.secondary)
             VStack(spacing: DS.spacingM) {
+                // Shown but off until Untis approves the WebUntis import.
+                Button {} label: {
+                    Label(L("Mit WebUntis verbinden"), systemImage: "arrow.triangle.2.circlepath")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.glass)
+                .controlSize(.large)
+                .disabled(true)
+                .accessibilityIdentifier("onboarding-untis")
+                Text(L("Wartet auf Freigabe durch Untis. Bis dahin legst du deine Fächer selbst an."))
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 Button(action: addSubject) {
                     Label(L("Fach selbst anlegen"), systemImage: "plus")
                         .frame(maxWidth: .infinity)

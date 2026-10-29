@@ -28,6 +28,7 @@ extension MeldoFeatures {
         .calendar,
         .statistics,
         .exams,
+        .untis,
         .teams,
         .drive,
         .subjects,

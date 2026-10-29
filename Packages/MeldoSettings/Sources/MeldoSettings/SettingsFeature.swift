@@ -20,6 +20,13 @@ extension MeldoFeature {
         return feature
     }
 
+    /// WebUntis under Verbindungen: says the import waits for approval from Untis.
+    public static var untis: MeldoFeature {
+        MeldoFeature(id: "untis", title: { L("WebUntis") }, symbol: "arrow.triangle.2.circlepath", placement: .connections) {
+            UntisPendingView()
+        }
+    }
+
     /// Über Meldo: version, privacy policy.
     public static var about: MeldoFeature {
         MeldoFeature(id: "about", title: { L("Über Meldo") }, symbol: "info.circle", placement: .app) {
