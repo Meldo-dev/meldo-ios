@@ -85,7 +85,16 @@ Workflows:
 - Every user-facing string goes in `meldo-core/l10n/Localizable.xcstrings`, German first, with an English translation.
 - Don't claim a build or test passed unless you ran it and saw the output.
 
-## Allowed and not allowed
+## Code quality
+
+Write the smallest change that solves the task. When in doubt, write less.
+
+- Reuse what exists before adding a helper, component or file. No abstraction, flag or setting with only one user, and nothing "for later".
+- Keep a comment only when it says why, or something the code can't say. Remove comments that repeat the code, commented-out code, TODOs without a next step and notes about earlier versions; that belongs in the commit message.
+- Remove dead code, unused imports, strings and assets, and leftover debug logging. Don't swallow errors silently.
+- Logic both apps need goes into meldo-core, not into Swift and Kotlin twice.
+- Match the style of the surrounding code. Fix a bug you find on the way in its own commit.
+- Before committing: The app builds for the simulator, and `python3 scripts/check_strings.py` reports no missing keys. Then read the whole diff and remove every line the task doesn't need.## Allowed and not allowed
 
 - Never put secrets in the repo, code, logs, commits or chat: OAuth client IDs (Google iOS, Google Android, Microsoft Teams), keystore passwords, API keys, tokens. Say where they come from instead: the gitignored `Config/Secrets.xcconfig` on iOS, `~/.gradle/gradle.properties` on Android, GitHub secrets in CI.
 - No mention of AI tools, assistant names, private notes or decision record numbers in code, comments or commits. The `hygiene` workflow in the public repos fails on this.
