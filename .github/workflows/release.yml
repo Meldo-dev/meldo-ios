@@ -18,8 +18,10 @@ permissions:
 
 jobs:
   on-branch:
-    # A tag can point at any commit, so check that the release comes from a branch that went
-    # through review before the release key or a published build gets involved.
+    # A tag can point at any commit, so check that the release comes from a release branch before
+    # the release key or a published build gets involved. This catches a tag on unmerged work; it
+    # can't stop someone who may push tags, since the tagged commit brings this file. That is up to
+    # the repository settings: who may push v* tags, and the release environment's reviewers.
     name: Release commit is on main, beta or alpha
     runs-on: ubuntu-latest
     steps:
