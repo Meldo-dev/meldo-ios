@@ -193,4 +193,11 @@ struct AppModelTests {
         #expect(model.storageProblem != nil)
         #expect(!model.showingOnboarding)
     }
+
+    /// Lesson and period minutes come from other devices too: any value gives a gap, never a crash.
+    @Test func minuteGapsNeverOverflow() {
+        #expect(AppModel.gap(from: 600, to: 610) == 10)
+        #expect(AppModel.gap(from: Int.min, to: 0) == .max)
+        #expect(AppModel.gap(from: 0, to: Int.max) == .max)
+    }
 }

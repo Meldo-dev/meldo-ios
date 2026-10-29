@@ -52,7 +52,9 @@ extension AppModel {
               absence.endMinute > absence.startMinute,
               absence.endMinute < first.endMinute
         else { return nil }
-        return absence.endMinute - absence.startMinute
+        // Minutes come from other devices too: a nonsense value gives no number, not a crash.
+        let late = absence.endMinute.subtractingReportingOverflow(absence.startMinute)
+        return late.overflow ? nil : late.partialValue
     }
 }
 

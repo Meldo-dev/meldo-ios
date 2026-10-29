@@ -204,6 +204,13 @@ extension AppModel {
         return block
     }
 
+    /// Minutes between two times of day. Synced minutes can be anything, so an impossible
+    /// difference is reported as huge instead of stopping the app.
+    public nonisolated static func gap(from start: Int, to end: Int) -> Int {
+        let gap = end.subtractingReportingOverflow(start)
+        return gap.overflow ? .max : gap.partialValue
+    }
+
     /// Joins back-to-back periods of the same course (as Untis draws them),
     /// also when parallel groups are interleaved in time order.
     private func mergeDoublePeriods(_ blocks: [TimetableBlock]) -> [TimetableBlock] {
@@ -212,7 +219,7 @@ extension AppModel {
             if let i = merged.lastIndex(where: { last in
                 last.subjectName == block.subjectName && last.teacher == block.teacher
                     && last.room == block.room && last.kind == block.kind && last.info == block.info
-                    && block.startMinute >= last.endMinute && block.startMinute - last.endMinute <= 25
+                    && block.startMinute >= last.endMinute && Self.gap(from: last.endMinute, to: block.startMinute) <= 25
             }) {
                 merged[i].endMinute = block.endMinute
                 merged[i].hasHomework = merged[i].hasHomework || block.hasHomework

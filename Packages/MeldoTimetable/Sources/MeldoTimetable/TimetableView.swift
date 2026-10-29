@@ -327,7 +327,8 @@ private struct GridMetrics {
     var end: Int
     var pointsPerMinute: CGFloat
 
-    func y(_ minute: Int) -> CGFloat { CGFloat(minute - start) * pointsPerMinute }
+    // In CGFloat: synced minutes can be anything, and an Int difference could overflow.
+    func y(_ minute: Int) -> CGFloat { (CGFloat(minute) - CGFloat(start)) * pointsPerMinute }
     var height: CGFloat { y(end) }
 
     /// From the first bell to the last block of the shown days (at least six periods).
@@ -581,8 +582,8 @@ private struct DayGrid: View {
         let bells = model.bellSchedule
         guard bells.count > 1 else { return [] }
         return zip(bells, bells.dropFirst()).compactMap { a, b in
-            let gap = b.startMinute - a.endMinute
-            guard gap >= 10, a.endMinute >= metrics.start, b.startMinute <= metrics.end else { return nil }
+            let gap = AppModel.gap(from: a.endMinute, to: b.startMinute)
+            guard gap >= 10, gap != .max, a.endMinute >= metrics.start, b.startMinute <= metrics.end else { return nil }
             return Gap(start: a.endMinute, end: b.startMinute)
         }
     }
