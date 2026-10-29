@@ -13,11 +13,11 @@ struct PrivacyPolicyView: View {
     private static var sections: [(title: String, body: String)] { [
         (
             L("Kurz gesagt"),
-            L("Meldo hat keinen eigenen Server und kein Konto. Wir zeigen keine Werbung, nutzen kein Tracking und keine Analyse-Dienste. Deine Daten werden auf deinem Gerät gespeichert. Nur wenn du WebUntis, Microsoft Teams oder Google Drive selbst verbindest, tauscht Meldo Daten mit diesen Diensten aus.")
+            L("Meldo hat keinen eigenen Server und kein Konto. Wir zeigen keine Werbung, nutzen kein Tracking und keine Analyse-Dienste. Deine Daten werden auf deinem Gerät gespeichert. Nur wenn du Microsoft Teams oder Google Drive selbst verbindest, tauscht Meldo Daten mit diesen Diensten aus.")
         ),
         (
             L("Was auf deinem Gerät gespeichert wird"),
-            L("Fächer, Stundenplan, Meldungen, Noten, Aufgaben, Ferien, Abwesenheiten, Einstellungen, eingescannte oder importierte Dokumente sowie Entschuldigungen, die du in Meldo erstellst. Dokumente und Entschuldigungen liegen im Meldo-Ordner der Dateien-App. Eine Entschuldigung kann einen Grund wie Krankheit enthalten; Meldo merkt sich dafür deinen Namen und deine Klasse. Widgets und der Melden-Knopf lesen dieselben Daten auf diesem Gerät.")
+            L("Fächer, Stundenplan, Meldungen, Noten, Aufgaben, Einstellungen, eingescannte oder importierte Dokumente. Dokumente liegen im Meldo-Ordner der Dateien-App. Widgets und der Melden-Knopf lesen dieselben Daten auf diesem Gerät.")
         ),
         (
             L("Scannen, Fotos und Dateien"),
@@ -25,11 +25,11 @@ struct PrivacyPolicyView: View {
         ),
         (
             L("Passwörter und Anmeldungen"),
-            L("Dein WebUntis-Passwort oder deine Schul-Anmeldung, die Anmeldung bei Microsoft und die Anmeldung bei Google werden nur im Schlüsselbund dieses Geräts gespeichert. Sie werden weder synchronisiert noch in Backups übertragen. Auf einem neuen Gerät meldest du dich deshalb erneut an.")
+            L("Die Anmeldung bei Microsoft und die Anmeldung bei Google werden nur im Schlüsselbund dieses Geräts gespeichert. Sie werden weder synchronisiert noch in Backups übertragen. Auf einem neuen Gerät meldest du dich deshalb erneut an.")
         ),
         (
             L("WebUntis"),
-            L("Wenn du WebUntis verbindest, meldet sich Meldo direkt beim WebUntis-Server deiner Schule an und lädt deinen Stundenplan, Vertretungen, Abwesenheiten, Prüfungen, Hausaufgaben und Mitteilungen der Schule. Um deine Schule zu finden, schickt Meldo deinen Suchbegriff an die Schulsuche von WebUntis. Die Daten fließen nur zwischen deinem Gerät und Untis. Für die Verarbeitung dort sind deine Schule und der Anbieter Untis verantwortlich. Solange die Verbindung besteht, fragt Meldo dort regelmäßig nach Änderungen: bei geöffneter App etwa alle 30 Sekunden, im Hintergrund etwa alle 20 Minuten. Den genauen Zeitpunkt bestimmt dein Gerät.")
+            L("WebUntis-Anbindung: wartet auf Freigabe durch Untis. WebUntis ist derzeit nicht Teil der App, Meldo verbindet sich nicht mit WebUntis. Hast du WebUntis mit einer früheren Version verbunden, bleiben die damals geladenen Daten auf deinem Gerät und werden nicht mehr aktualisiert. Deine damalige WebUntis-Anmeldung bleibt verschlüsselt auf dem Gerät gespeichert, wird aber nicht mehr verwendet.")
         ),
         (
             L("Microsoft Teams"),
@@ -49,7 +49,7 @@ struct PrivacyPolicyView: View {
         ),
         (
             L("Daten löschen"),
-            L("Du kannst einzelne Einträge in der App löschen. Wenn du Meldo vom Gerät löschst, werden deine Meldo-Daten auf diesem Gerät entfernt. Anmeldungen im Schlüsselbund kann iOS auch danach behalten; trennst du die Verbindungen vorher in der App, sind sie sofort gelöscht. Kann Meldo seine Datei einmal nicht lesen, hebt es eine Kopie höchstens 30 Tage auf, damit nichts verloren geht. Verbindungen zu WebUntis, Teams und Google Drive kannst du jederzeit in der App trennen. Das Backup in Google Drive löschst du unter Mehr > Google Drive > Backup in Google Drive löschen.")
+            L("Du kannst einzelne Einträge in der App löschen. Wenn du Meldo vom Gerät löschst, werden deine Meldo-Daten auf diesem Gerät entfernt. Anmeldungen im Schlüsselbund kann iOS auch danach behalten; trennst du die Verbindungen vorher in der App, sind sie sofort gelöscht. Kann Meldo seine Datei einmal nicht lesen, hebt es eine Kopie höchstens 30 Tage auf, damit nichts verloren geht. Verbindungen zu Teams und Google Drive kannst du jederzeit in der App trennen. Das Backup in Google Drive löschst du unter Mehr > Google Drive > Backup in Google Drive löschen.")
         ),
         (
             L("Rechtsgrundlage"),
@@ -57,11 +57,11 @@ struct PrivacyPolicyView: View {
         ),
         (
             L("Kinder und Jugendliche"),
-            L("Meldo ist für Schülerinnen und Schüler gemacht, auch unter 16 Jahren. Der Entwickler sammelt über Meldo keine Daten über dich. Für die Anmeldung bei WebUntis, Microsoft und Google gelten die Regeln deiner Schule und dieser Anbieter. Bist du unter 16, sprich mit deinen Eltern, bevor du Microsoft oder Google verbindest.")
+            L("Meldo ist für Schülerinnen und Schüler gemacht, auch unter 16 Jahren. Der Entwickler sammelt über Meldo keine Daten über dich. Für die Anmeldung bei Microsoft und Google gelten die Regeln deiner Schule und dieser Anbieter. Bist du unter 16, sprich mit deinen Eltern, bevor du Microsoft oder Google verbindest.")
         ),
         (
             L("Deine Rechte"),
-            L("Da Meldo deine Einträge nicht auf einem eigenen Server speichert, kann der Entwickler sie weder einsehen noch herausgeben. Hast du in den Einstellungen deines Geräts erlaubt, Analysedaten mit App-Entwicklern zu teilen, gibt Apple Absturzberichte ohne deinen Namen an den Entwickler weiter. Sie enthalten Gerätemodell, Systemversion und die Stelle im Code, aber keine Meldo-Einträge, und dienen nur dazu, Fehler zu beheben (Art. 6 Abs. 1 lit. f DSGVO). Anfragen zu Daten bei WebUntis, Microsoft oder Google richtest du an deine Schule oder an den jeweiligen Anbieter. Deine Rechte nach der Datenschutz-Grundverordnung (DSGVO) gelten dort weiterhin. Du hast das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung, Datenübertragbarkeit, Widerspruch und Beschwerde bei einer Aufsichtsbehörde. Widerspruchsrecht: Verarbeiten wir Daten nach Art. 6 Abs. 1 lit. f DSGVO, kannst du dem jederzeit widersprechen, per E-Mail an contact@meldo.dev. Die ganze Datenschutzerklärung findest du unter meldo.dev/de/privacy.")
+            L("Da Meldo deine Einträge nicht auf einem eigenen Server speichert, kann der Entwickler sie weder einsehen noch herausgeben. Hast du in den Einstellungen deines Geräts erlaubt, Analysedaten mit App-Entwicklern zu teilen, gibt Apple Absturzberichte ohne deinen Namen an den Entwickler weiter. Sie enthalten Gerätemodell, Systemversion und die Stelle im Code, aber keine Meldo-Einträge, und dienen nur dazu, Fehler zu beheben (Art. 6 Abs. 1 lit. f DSGVO). Anfragen zu Daten bei Microsoft oder Google richtest du an deine Schule oder an den jeweiligen Anbieter. Deine Rechte nach der Datenschutz-Grundverordnung (DSGVO) gelten dort weiterhin. Du hast das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung, Datenübertragbarkeit, Widerspruch und Beschwerde bei einer Aufsichtsbehörde. Widerspruchsrecht: Verarbeiten wir Daten nach Art. 6 Abs. 1 lit. f DSGVO, kannst du dem jederzeit widersprechen, per E-Mail an contact@meldo.dev. Die ganze Datenschutzerklärung findest du unter meldo.dev/de/privacy.")
         ),
         (
             L("Verantwortlich und Kontakt"),
