@@ -5,14 +5,14 @@ import MeldoUI
 import SwiftUI
 import UserNotifications
 
-/// Background App Refresh task that keeps WebUntis data current.
+/// Background App Refresh task that keeps Teams and Google Drive data current.
 enum BackgroundRefresh {
     static let identifier = "app.meldeplanner.ios.refresh"
     /// The app's model once its window exists; a pure background launch loads its own.
     static weak var model: AppModel?
 
-    /// Runs when iOS wakes Meldo: plan the next wake-up, then update WebUntis
-    /// and Teams if they're due.
+    /// Runs when iOS wakes Meldo: plan the next wake-up, then update Teams
+    /// and Google Drive if they're due.
     static func run() async {
         schedule()
         let target = Self.model ?? AppModel.makeForLaunch()
@@ -23,7 +23,7 @@ enum BackgroundRefresh {
     /// Asks iOS to wake Meldo again; iOS decides the exact time.
     static func schedule() {
         let request = BGAppRefreshTaskRequest(identifier: identifier)
-        // 5 minutes with Google Drive sync on, else 20 (WebUntis); iOS often runs it later.
+        // 5 minutes with Google Drive sync on, else 20; iOS often runs it later.
         let frequent = MeldoFeatures.app.all.contains { $0.wantsFrequentWakeUps() }
         request.earliestBeginDate = Date(timeIntervalSinceNow: frequent ? 5 * 60 : 20 * 60)
         try? BGTaskScheduler.shared.submit(request)
@@ -62,7 +62,7 @@ struct MeldePlannerApp: App {
                 .onReceive(NotificationCenter.default.publisher(for: .meldeDataChanged)) { _ in
                     model.reloadFromDisk()
                 }
-                // While the app is open: other devices' changes and WebUntis updates arrive within half a minute.
+                // While the app is open: other devices' changes and Teams updates arrive within half a minute.
                 .task {
                     BackgroundRefresh.model = model
                     while !Task.isCancelled {

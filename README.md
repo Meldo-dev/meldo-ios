@@ -21,14 +21,14 @@
   <img src=".github/readme/iphone-06-statistik.jpg" width="230" alt="Participation stats">
 </p>
 
-> Meldo ist ein kostenloser Schulplaner für Schülerinnen und Schüler: Meldungen zählen, Stundenplan (optional aus WebUntis), Noten nach 1–6 oder 0–15 Punkten, Hausaufgaben und Klausuren. Alle Daten bleiben auf deinem Gerät.
+> Meldo ist ein kostenloser Schulplaner für Schülerinnen und Schüler: Meldungen zählen, Stundenplan, Noten nach 1–6 oder 0–15 Punkten, Hausaufgaben und Klausuren. Alle Daten bleiben auf deinem Gerät.
 
 ## Features
 
 - Count a hand-raise with one tap in the app, from a widget or from Control Center. If phones have to stay in the bag at your school, Meldo asks once after each lesson instead.
-- Type in your timetable or import it from your school's WebUntis server, including substitutions, cancellations and room changes. The current lesson shows as a Live Activity / Live Update.
+- Type in your timetable once, with A/B weeks if your school has them. The current lesson shows as a Live Activity / Live Update. The WebUntis import is switched off for now, until Untis approves it.
 - See your average per subject on the German 1–6 or 0–15 point scale. Your school's weighting and rounding rules are settings, so they can match what your school uses.
-- Keep track of homework and exams with reminders and an exam calendar. You can scan worksheets to PDF, import Microsoft Teams assignments if you want, and write excuse notes.
+- Keep track of homework and exams with reminders and an exam calendar. You can scan worksheets to PDF, import Microsoft Teams assignments if you want.
 - Your data stays on the device, and Meldo has no server. If you turn on backup and sync, it goes to *your own* Google Drive and is encrypted on the device before it leaves (AES-256-GCM, PBKDF2-SHA256 with 600,000 rounds).
 - German and English, light and dark mode.
 
@@ -54,9 +54,9 @@ scripts/, tools/     Build helpers, icon and store-screenshot renderers
 ```
 App target            entry point, RootView, FeatureList.swift
  ├─ features          MeldoDashboard, MeldoTimetable, MeldoParticipation, MeldoTasks, MeldoGrades,
- │                    MeldoCalendar, MeldoStatistics, MeldoExams, MeldoHolidays, MeldoSubjects,
+ │                    MeldoCalendar, MeldoStatistics, MeldoExams, MeldoSubjects,
  │                    MeldoOnboarding, MeldoSettings
- ├─ integrations      MeldoUntis (with Abwesenheiten and Entschuldigung), MeldoTeams, MeldoDrive
+ ├─ integrations      MeldoTeams, MeldoDrive
  └─ core              MeldoUI     design system, shared rows and sheets, feature registry, Mehr
                       MeldoState  AppModel: data, mutate(), preferences, shared lookups, module hooks
                       MeldoKit    models (AppData), local store, sync merge, localization, engine glue
@@ -73,7 +73,7 @@ from `project.yml`, then run `xcodegen generate`. `AppData` and the sync format 
 without a feature still reads and syncs data written by one with it. Tests live in each package's
 `Tests/` folder and run with the app scheme.
 
-Grade math, timetable derivation, WebUntis parsing and statistics are written once in Rust in [meldo-core](https://github.com/meldo-dev/meldo-core), and the Android app uses the same code. [XcodeGen](https://github.com/yonaskolb/XcodeGen) generates the Xcode project from `project.yml`.
+Grade math, timetable derivation and statistics are written once in Rust in [meldo-core](https://github.com/meldo-dev/meldo-core), and the Android app uses the same code. [XcodeGen](https://github.com/yonaskolb/XcodeGen) generates the Xcode project from `project.yml`.
 
 ## Building (macOS with Xcode 26)
 

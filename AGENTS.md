@@ -8,7 +8,7 @@ Meldo is a free, open source school planner for students in Germany. Its core fe
 
 - Apps for iOS, iPadOS and Android. All three share one Rust core (meldo-core).
 - No backend and no account. Data stays on the device.
-- Optional integrations: WebUntis timetable import, Microsoft Teams assignments, and Google Drive backup and sync. Sync data is encrypted on the device before upload (AES-256-GCM, key from PBKDF2-SHA256) and stored in the `drive.appdata` scope.
+- Optional integrations: Microsoft Teams assignments, and Google Drive backup and sync. Sync data is encrypted on the device before upload (AES-256-GCM, key from PBKDF2-SHA256) and stored in the `drive.appdata` scope.
 - German is the default language, English is the second one.
 - Website: meldo.dev.
 
@@ -33,15 +33,15 @@ meldo-ios is the SwiftUI app for iPhone and iPad (iOS 26, Liquid Glass).
 
 Modules under `Packages/`:
 
-- Features: MeldoDashboard, MeldoTimetable, MeldoParticipation, MeldoTasks, MeldoGrades, MeldoCalendar, MeldoStatistics, MeldoExams, MeldoHolidays, MeldoSubjects, MeldoOnboarding, MeldoSettings.
-- Integrations: MeldoUntis, MeldoTeams, MeldoDrive (encrypted Drive sync in `DriveSync.swift`).
+- Features: MeldoDashboard, MeldoTimetable, MeldoParticipation, MeldoTasks, MeldoGrades, MeldoCalendar, MeldoStatistics, MeldoExams, MeldoSubjects, MeldoOnboarding, MeldoSettings.
+- Integrations: MeldoTeams, MeldoDrive (encrypted Drive sync in `DriveSync.swift`).
 - Core: MeldoUI (design system, shared rows and sheets, feature registry), MeldoState (`AppModel`), MeldoKit (models, `AppData`, local store, sync merge, localization, engine glue).
 
 How it fits together:
 
 - Dependencies only point down. Features never import each other.
 - Each feature describes itself once as a `MeldoFeature`. Tab bar, iPad sidebar, Mehr, Start and Einstellungen are built from `App/FeatureList.swift`. Features link by `MeldoRoute`.
-- Grade math, timetable derivation, WebUntis parsing and statistics come from the Rust core through `MeldeCore`. Don't reimplement them in Swift.
+- Grade math, timetable derivation and statistics come from the Rust core through `MeldeCore`. Don't reimplement them in Swift.
 - Strings come from `core/l10n/Localizable.xcstrings` (listed in `project.yml`).
 - `AppData` and the sync format stay whole, so a build without a feature still reads and syncs all data. The format must match `integration/drive` in meldo-android.
 - Check current Apple documentation before using iOS 26 Liquid Glass APIs.
@@ -95,4 +95,5 @@ Workflows:
 - Don't push to `main`, `beta` or `alpha`, and don't create tags or releases, unless the owner asked for it. Work on a branch and open a pull request.
 - `beta` and `alpha` differ from `main` on purpose. Don't merge `main` into them, and don't force-push.
 - Don't touch the owner's devices or real data.
+- The WebUntis import is not part of the apps for now. Don't add it back or reintroduce code for it.
 - Site: no third-party requests, cookies or trackers. Keep the `/de/` and `/en/` URLs and the redirects. Legal pages: German is authoritative, English matches it.

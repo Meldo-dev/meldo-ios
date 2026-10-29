@@ -3,7 +3,6 @@ import MeldoDashboard
 import MeldoDrive
 import MeldoExams
 import MeldoGrades
-import MeldoHolidays
 import MeldoKit
 import MeldoOnboarding
 import MeldoParticipation
@@ -15,7 +14,6 @@ import MeldoTasks
 import MeldoTeams
 import MeldoTimetable
 import MeldoUI
-import MeldoUntis
 import SwiftUI
 
 extension MeldoFeatures {
@@ -30,9 +28,6 @@ extension MeldoFeatures {
         .calendar,
         .statistics,
         .exams,
-        .absences,
-        .holidays,
-        .untis,
         .teams,
         .drive,
         .subjects,
